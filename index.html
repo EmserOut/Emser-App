@@ -1620,53 +1620,78 @@ function renderForecast() {
   if (!ud.forecast[year]) ud.forecast[year] = Array(12).fill(null).map(() => ({}));
   const fd = ud.forecast[year];
 
+  const quarters = [
+    { label: 'Q1', months: [0,1,2] },
+    { label: 'Q2', months: [3,4,5] },
+    { label: 'Q3', months: [6,7,8] },
+    { label: 'Q4', months: [9,10,11] }
+  ];
+
   let totPrior = 0, totOrig = 0, totEdited = 0, totActual = 0;
+  let rows = '';
 
-  tbody.innerHTML = MONTHS.map((m, i) => {
-    const row = fd[i] || {};
-    const orig = parseFloat(row.originalForecast) || 0;
-    const edited = parseFloat(row.editedForecast) || orig;
-    const actual = parseFloat(row.actual) || 0;
-    const prior = parseFloat(row.priorYear) || 0;
+  const qRowStyle = 'background:var(--light-gray);font-weight:700;border-top:2px solid var(--border);';
 
-    totPrior += prior;
-    totOrig += orig;
-    totEdited += edited || orig;
-    totActual += actual;
+  quarters.forEach(q => {
+    let qPrior = 0, qOrig = 0, qEdited = 0, qActual = 0;
 
-    const forecastToUse = edited || orig;
-    const forecastVar = forecastToUse > 0 ? ((actual - forecastToUse) / forecastToUse * 100) : null;
-    const yoyVar = prior > 0 ? ((actual - prior) / prior * 100) : null;
+    q.months.forEach(i => {
+      const row = fd[i] || {};
+      const orig = parseFloat(row.originalForecast) || 0;
+      const edited = parseFloat(row.editedForecast) || orig;
+      const actual = parseFloat(row.actual) || 0;
+      const prior = parseFloat(row.priorYear) || 0;
 
-    const needsExplanation = forecastVar !== null && forecastVar < -5;
+      qPrior += prior; qOrig += orig; qEdited += edited || orig; qActual += actual;
+      totPrior += prior; totOrig += orig; totEdited += edited || orig; totActual += actual;
 
-    // Locking rules
-    const origLocked = !isAdmin() && (row.originalForecast !== undefined && row.originalForecast !== '');
-    const editedLocked = !isAdmin() && !isFirstWeek();
+      const forecastToUse = edited || orig;
+      const forecastVar = forecastToUse > 0 ? ((actual - forecastToUse) / forecastToUse * 100) : null;
+      const yoyVar = prior > 0 ? ((actual - prior) / prior * 100) : null;
+      const needsExplanation = forecastVar !== null && forecastVar < -5;
+      const origLocked = !isAdmin() && (row.originalForecast !== undefined && row.originalForecast !== '');
+      const editedLocked = !isAdmin() && !isFirstWeek();
 
-    return `<tr>
-      <td><strong>${m}</strong></td>
-      <td><div class="input-dollar"><span>$</span><input type="number" class="fc-prior" data-month="${i}" value="${row.priorYear||''}" placeholder="0" ${!isAdmin() ? 'disabled' : ''}></div></td>
-      <td><div class="input-dollar"><span>$</span><input type="number" class="fc-orig" data-month="${i}" value="${row.originalForecast||''}" placeholder="0" ${origLocked ? 'disabled' : ''}></div></td>
-      <td><div class="input-dollar"><span>$</span><input type="number" class="fc-edited" data-month="${i}" value="${row.editedForecast||''}" placeholder="0" ${editedLocked ? 'disabled' : ''} title="${editedLocked ? 'Only editable during first week of month' : ''}"></div></td>
-      <td><div class="input-dollar"><span>$</span><input type="number" class="fc-actual" data-month="${i}" value="${row.actual||''}" placeholder="0"></div></td>
-      <td class="${varClass(forecastVar)}">${forecastVar !== null ? (forecastVar >= 0 ? '+' : '') + forecastVar.toFixed(1) + '%' : '—'}</td>
-      <td class="${varClass(yoyVar)}">${yoyVar !== null ? (yoyVar >= 0 ? '+' : '') + yoyVar.toFixed(1) + '%' : '—'}</td>
-      <td><textarea class="fc-explain" data-month="${i}" placeholder="${needsExplanation ? '⚠ Required: variance > -5%' : 'Optional note'}" rows="1">${row.explanation||''}</textarea></td>
+      rows += `<tr>
+        <td><strong>${MONTHS[i]}</strong></td>
+        <td><div class="input-dollar"><span>$</span><input type="number" class="fc-prior" data-month="${i}" value="${row.priorYear||''}" placeholder="0" ${!isAdmin() ? 'disabled' : ''}></div></td>
+        <td><div class="input-dollar"><span>$</span><input type="number" class="fc-orig" data-month="${i}" value="${row.originalForecast||''}" placeholder="0" ${origLocked ? 'disabled' : ''}></div></td>
+        <td><div class="input-dollar"><span>$</span><input type="number" class="fc-edited" data-month="${i}" value="${row.editedForecast||''}" placeholder="0" ${editedLocked ? 'disabled' : ''} title="${editedLocked ? 'Only editable during first week of month' : ''}"></div></td>
+        <td><div class="input-dollar"><span>$</span><input type="number" class="fc-actual" data-month="${i}" value="${row.actual||''}" placeholder="0"></div></td>
+        <td class="${varClass(forecastVar)}">${forecastVar !== null ? (forecastVar >= 0 ? '+' : '') + forecastVar.toFixed(1) + '%' : '—'}</td>
+        <td class="${varClass(yoyVar)}">${yoyVar !== null ? (yoyVar >= 0 ? '+' : '') + yoyVar.toFixed(1) + '%' : '—'}</td>
+        <td><textarea class="fc-explain" data-month="${i}" placeholder="${needsExplanation ? '⚠ Required: variance > -5%' : 'Optional note'}" rows="1">${row.explanation||''}</textarea></td>
+      </tr>`;
+    });
+
+    // Quarter subtotal row
+    const qFcVar = qEdited > 0 ? ((qActual - qEdited) / qEdited * 100) : null;
+    const qYoyVar = qPrior > 0 ? ((qActual - qPrior) / qPrior * 100) : null;
+    rows += `<tr style="${qRowStyle}">
+      <td>📊 ${q.label} Total</td>
+      <td>${fmt(qPrior)}</td>
+      <td>${fmt(qOrig)}</td>
+      <td>${fmt(qEdited)}</td>
+      <td>${fmt(qActual)}</td>
+      <td class="${varClass(qFcVar)}">${qFcVar !== null ? (qFcVar >= 0 ? '+' : '') + qFcVar.toFixed(1) + '%' : '—'}</td>
+      <td class="${varClass(qYoyVar)}">${qYoyVar !== null ? (qYoyVar >= 0 ? '+' : '') + qYoyVar.toFixed(1) + '%' : '—'}</td>
+      <td></td>
     </tr>`;
-  }).join('');
+  });
 
-  // Totals row
-  const totForecastVar = totEdited > 0 ? ((totActual - totEdited) / totEdited * 100) : null;
+  tbody.innerHTML = rows;
+
+  // YTD totals row
+  const totFcVar = totEdited > 0 ? ((totActual - totEdited) / totEdited * 100) : null;
   const totYoyVar = totPrior > 0 ? ((totActual - totPrior) / totPrior * 100) : null;
-  tfoot.innerHTML = `<tr style="background:var(--light-gray);font-weight:700;border-top:2px solid var(--border);">
-    <td><strong>YTD Total</strong></td>
-    <td><strong>${fmt(totPrior)}</strong></td>
-    <td><strong>${fmt(totOrig)}</strong></td>
-    <td><strong>${fmt(totEdited)}</strong></td>
-    <td><strong>${fmt(totActual)}</strong></td>
-    <td class="${varClass(totForecastVar)}"><strong>${totForecastVar !== null ? (totForecastVar >= 0 ? '+' : '') + totForecastVar.toFixed(1) + '%' : '—'}</strong></td>
-    <td class="${varClass(totYoyVar)}"><strong>${totYoyVar !== null ? (totYoyVar >= 0 ? '+' : '') + totYoyVar.toFixed(1) + '%' : '—'}</strong></td>
+  tfoot.innerHTML = `<tr style="background:var(--charcoal);color:var(--white);font-weight:700;border-top:2px solid var(--gold);">
+    <td style="color:var(--gold);">🏆 YTD Total</td>
+    <td>${fmt(totPrior)}</td>
+    <td>${fmt(totOrig)}</td>
+    <td>${fmt(totEdited)}</td>
+    <td>${fmt(totActual)}</td>
+    <td class="${varClass(totFcVar)}">${totFcVar !== null ? (totFcVar >= 0 ? '+' : '') + totFcVar.toFixed(1) + '%' : '—'}</td>
+    <td class="${varClass(totYoyVar)}">${totYoyVar !== null ? (totYoyVar >= 0 ? '+' : '') + totYoyVar.toFixed(1) + '%' : '—'}</td>
     <td></td>
   </tr>`;
 }
