@@ -531,6 +531,7 @@
               </tr>
             </thead>
             <tbody id="forecast-tbody"></tbody>
+            <tfoot id="forecast-tfoot"></tfoot>
           </table>
         </div>
       </div>
@@ -1064,7 +1065,7 @@ async function loadState() {
 // ═══════════════════════════════════
 function fmt(n) {
   if (n === null || n === undefined || n === '' || isNaN(Number(n))) return '—';
-  return Number(n).toLocaleString('en-US', {minimumFractionDigits:0,maximumFractionDigits:0});
+  return '$' + Number(n).toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
 }
 function pct(a, b) {
   if (!b || b == 0) return null;
@@ -1608,12 +1609,15 @@ function renderForecast() {
   const userId = getSubjectId('forecast-assoc-select');
   const year = parseInt(document.getElementById('forecast-year').value);
   const tbody = document.getElementById('forecast-tbody');
+  const tfoot = document.getElementById('forecast-tfoot');
 
-  if (!userId) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--mid-gray);">Select an associate.</td></tr>'; return; }
+  if (!userId) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--mid-gray);">Select an associate.</td></tr>'; tfoot.innerHTML=''; return; }
 
   const ud = getUserData(userId);
   if (!ud.forecast[year]) ud.forecast[year] = Array(12).fill(null).map(() => ({}));
   const fd = ud.forecast[year];
+
+  let totPrior = 0, totOrig = 0, totEdited = 0, totActual = 0;
 
   tbody.innerHTML = MONTHS.map((m, i) => {
     const row = fd[i] || {};
@@ -1621,6 +1625,11 @@ function renderForecast() {
     const edited = parseFloat(row.editedForecast) || orig;
     const actual = parseFloat(row.actual) || 0;
     const prior = parseFloat(row.priorYear) || 0;
+
+    totPrior += prior;
+    totOrig += orig;
+    totEdited += edited || orig;
+    totActual += actual;
 
     const forecastToUse = edited || orig;
     const forecastVar = forecastToUse > 0 ? ((actual - forecastToUse) / forecastToUse * 100) : null;
@@ -1631,7 +1640,6 @@ function renderForecast() {
     // Locking rules
     const origLocked = !isAdmin() && (row.originalForecast !== undefined && row.originalForecast !== '');
     const editedLocked = !isAdmin() && !isFirstWeek();
-    const isPast = i < CURRENT_MONTH || year < CURRENT_YEAR;
 
     return `<tr>
       <td><strong>${m}</strong></td>
@@ -1644,6 +1652,20 @@ function renderForecast() {
       <td><textarea class="fc-explain" data-month="${i}" placeholder="${needsExplanation ? '⚠ Required: variance > -5%' : 'Optional note'}" rows="1">${row.explanation||''}</textarea></td>
     </tr>`;
   }).join('');
+
+  // Totals row
+  const totForecastVar = totEdited > 0 ? ((totActual - totEdited) / totEdited * 100) : null;
+  const totYoyVar = totPrior > 0 ? ((totActual - totPrior) / totPrior * 100) : null;
+  tfoot.innerHTML = `<tr style="background:var(--light-gray);font-weight:700;border-top:2px solid var(--border);">
+    <td><strong>YTD Total</strong></td>
+    <td><strong>${fmt(totPrior)}</strong></td>
+    <td><strong>${fmt(totOrig)}</strong></td>
+    <td><strong>${fmt(totEdited)}</strong></td>
+    <td><strong>${fmt(totActual)}</strong></td>
+    <td class="${varClass(totForecastVar)}"><strong>${totForecastVar !== null ? (totForecastVar >= 0 ? '+' : '') + totForecastVar.toFixed(1) + '%' : '—'}</strong></td>
+    <td class="${varClass(totYoyVar)}"><strong>${totYoyVar !== null ? (totYoyVar >= 0 ? '+' : '') + totYoyVar.toFixed(1) + '%' : '—'}</strong></td>
+    <td></td>
+  </tr>`;
 }
 
 function saveForecast() {
