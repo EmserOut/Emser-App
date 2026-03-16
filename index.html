@@ -190,6 +190,9 @@
   select.ctrl:focus, input.ctrl:focus { outline: none; border-color: var(--gold); }
 
   /* TABLES */
+  .input-dollar { display:flex; align-items:center; gap:2px; }
+  .input-dollar span { font-size:13px; color:var(--mid-gray); font-weight:600; flex-shrink:0; }
+  .input-dollar input { flex:1; min-width:0; }
   .data-table { width: 100%; border-collapse: collapse; }
   .data-table th {
     background: var(--charcoal); color: var(--white);
@@ -521,7 +524,7 @@
             <thead>
               <tr>
                 <th>Month</th>
-                <th>Prior Year Sales ($)</th>
+                <th>Prior Year ($)</th>
                 <th>Original Forecast ($)</th>
                 <th>Edited Forecast ($)</th>
                 <th>Actual Sales ($)</th>
@@ -1376,9 +1379,9 @@ function renderDashboard() {
   grid.innerHTML = `
     <div class="card">
       <div class="card-title"><div class="gold-bar"></div>${MONTHS[month]} Actual Sales</div>
-      <div style="font-size:32px;font-weight:700;font-family:'Playfair Display',serif;color:var(--charcoal);">$${fmt(actualSales)}</div>
+      <div style="font-size:32px;font-weight:700;font-family:'Playfair Display',serif;color:var(--charcoal);">${fmt(actualSales)}</div>
       <div style="font-size:13px;color:var(--mid-gray);margin-top:6px;">
-        Forecast: $${fmt(editedForecast)}
+        Forecast: ${fmt(editedForecast)}
         ${forecastVar !== null ? `<span class="${varClass(forecastVar)}" style="margin-left:8px;">(${forecastVar >= 0 ? '+' : ''}${forecastVar.toFixed(1)}%)</span>` : ''}
       </div>
     </div>
@@ -1394,12 +1397,12 @@ function renderDashboard() {
     </div>
     <div class="card">
       <div class="card-title"><div class="gold-bar"></div>YTD Actual Sales</div>
-      <div style="font-size:32px;font-weight:700;font-family:'Playfair Display',serif;color:var(--charcoal);">$${fmt(ytdActual)}</div>
+      <div style="font-size:32px;font-weight:700;font-family:'Playfair Display',serif;color:var(--charcoal);">${fmt(ytdActual)}</div>
       <div style="font-size:13px;color:var(--mid-gray);margin-top:6px;">Jan – ${MONTHS[month]} ${year}</div>
     </div>
     <div class="card">
       <div class="card-title"><div class="gold-bar"></div>${ytdForecastLabel}</div>
-      <div style="font-size:32px;font-weight:700;font-family:'Playfair Display',serif;color:var(--charcoal);">$${fmt(ytdForecast)}</div>
+      <div style="font-size:32px;font-weight:700;font-family:'Playfair Display',serif;color:var(--charcoal);">${fmt(ytdForecast)}</div>
       <div style="font-size:13px;color:var(--mid-gray);margin-top:6px;">Jan – ${MONTHS[month]} ${year}</div>
     </div>
     <div class="card">
@@ -1408,7 +1411,7 @@ function renderDashboard() {
         ${ytdVar !== null ? (ytdVar >= 0 ? '+' : '') + ytdVar.toFixed(1) + '%' : '—'}
       </div>
       <div style="font-size:13px;color:var(--mid-gray);margin-top:6px;">
-        ${ytdVar !== null ? `$${fmt(ytdActual - ytdForecast)} vs forecast` : 'No forecast data yet'}
+        ${ytdVar !== null ? `${fmt(ytdActual - ytdForecast)} vs forecast` : 'No forecast data yet'}
       </div>
     </div>
   `;
@@ -1435,7 +1438,7 @@ function renderDashboard() {
       const sl = t.status === 'acquired' ? 'Acquired' : t.status === 'lost' ? 'Lost' : 'Pending';
       return `<div class="stat-row">
         <span class="stat-label" style="max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.account}">${t.account || '—'}</span>
-        <span style="font-size:13px;color:var(--mid-gray);">$${fmt(t.value)}</span>
+        <span style="font-size:13px;color:var(--mid-gray);">${fmt(t.value)}</span>
         <span class="badge ${sc}">${sl}</span>
       </div>`;
     }).join('');
@@ -1541,8 +1544,8 @@ function renderAllAssociatesSummary(container) {
 
     return `<tr>
       <td><strong>${u.name}</strong></td>
-      <td><strong>$${fmt(s.ytdActual)}</strong></td>
-      <td>$${fmt(s.ytdForecast)}</td>
+      <td><strong>${fmt(s.ytdActual)}</strong></td>
+      <td>${fmt(s.ytdForecast)}</td>
       <td>${ytdVarStr}</td>
       <td>${faStr}</td>
       <td>${aiStr}</td>
@@ -1590,8 +1593,8 @@ function renderAllAssociatesSummary(container) {
             ${rows}
             <tr style="background:#f5f3ef;font-weight:700;">
               <td><strong>🏢 Team Total</strong></td>
-              <td><strong>$${fmt(totals.ytdActual)}</strong></td>
-              <td><strong>$${fmt(totals.ytdForecast)}</strong></td>
+              <td><strong>${fmt(totals.ytdActual)}</strong></td>
+              <td><strong>${fmt(totals.ytdForecast)}</strong></td>
               <td><strong>${teamVarStr}</strong></td>
               <td colspan="4" style="color:var(--mid-gray);font-size:13px;font-weight:400;">Individual grades above</td>
             </tr>
@@ -1643,10 +1646,10 @@ function renderForecast() {
 
     return `<tr>
       <td><strong>${m}</strong></td>
-      <td><input type="number" class="fc-prior" data-month="${i}" value="${row.priorYear||''}" placeholder="0" ${!isAdmin() ? 'disabled' : ''}></td>
-      <td><input type="number" class="fc-orig" data-month="${i}" value="${row.originalForecast||''}" placeholder="0" ${origLocked ? 'disabled' : ''}></td>
-      <td><input type="number" class="fc-edited" data-month="${i}" value="${row.editedForecast||''}" placeholder="0" ${editedLocked ? 'disabled' : ''} title="${editedLocked ? 'Only editable during first week of month' : ''}"></td>
-      <td><input type="number" class="fc-actual" data-month="${i}" value="${row.actual||''}" placeholder="0"></td>
+      <td><div class="input-dollar"><span>$</span><input type="number" class="fc-prior" data-month="${i}" value="${row.priorYear||''}" placeholder="0" ${!isAdmin() ? 'disabled' : ''}></div></td>
+      <td><div class="input-dollar"><span>$</span><input type="number" class="fc-orig" data-month="${i}" value="${row.originalForecast||''}" placeholder="0" ${origLocked ? 'disabled' : ''}></div></td>
+      <td><div class="input-dollar"><span>$</span><input type="number" class="fc-edited" data-month="${i}" value="${row.editedForecast||''}" placeholder="0" ${editedLocked ? 'disabled' : ''} title="${editedLocked ? 'Only editable during first week of month' : ''}"></div></td>
+      <td><div class="input-dollar"><span>$</span><input type="number" class="fc-actual" data-month="${i}" value="${row.actual||''}" placeholder="0"></div></td>
       <td class="${varClass(forecastVar)}">${forecastVar !== null ? (forecastVar >= 0 ? '+' : '') + forecastVar.toFixed(1) + '%' : '—'}</td>
       <td class="${varClass(yoyVar)}">${yoyVar !== null ? (yoyVar >= 0 ? '+' : '') + yoyVar.toFixed(1) + '%' : '—'}</td>
       <td><textarea class="fc-explain" data-month="${i}" placeholder="${needsExplanation ? '⚠ Required: variance > -5%' : 'Optional note'}" rows="1">${row.explanation||''}</textarea></td>
@@ -1917,7 +1920,7 @@ function renderAnnualTargets() {
         <td>${r.month}</td>
         <td>${r.account}</td>
         <td>${r.type || '—'}</td>
-        <td>$${fmt(r.value)}</td>
+        <td>${fmt(r.value)}</td>
         <td style="max-width:200px;font-size:13px;">${r.strategy || '—'}</td>
         <td>
           <select class="atgt-status" data-month="${r.monthIdx}" data-tidx="${r.targetIdx}" style="width:120px;padding:6px 8px;border:1.5px solid var(--border);border-radius:5px;font-size:13px;font-family:inherit;">
@@ -1932,7 +1935,7 @@ function renderAnnualTargets() {
         <td>${r.month}</td>
         <td>${r.account}</td>
         <td>${r.type || '—'}</td>
-        <td>$${fmt(r.value)}</td>
+        <td>${fmt(r.value)}</td>
         <td style="max-width:200px;font-size:13px;">${r.strategy || '—'}</td>
         <td><span class="badge ${sc}">${sl}</span></td>
       </tr>`;
