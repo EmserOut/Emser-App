@@ -408,6 +408,9 @@
     </div>
     <div class="login-error" id="login-error" style="display:none;margin-top:-8px;font-size:13px;color:var(--red);"></div>
     <button class="btn-login" onclick="doLogin()">Sign In</button>
+    <div style="text-align:center;margin-top:16px;">
+      <a href="#" onclick="forgotPassword()" style="font-size:13px;color:var(--gold);text-decoration:none;">Forgot your password?</a>
+    </div>
   </div>
 </div>
 
@@ -428,6 +431,7 @@
     <div class="header-right">
       <div id="sync-indicator" style="font-size:12px;color:#aaa;opacity:0;transition:opacity .3s;min-width:120px;text-align:right;"></div>
       <div class="header-user">Signed in as: <span id="header-username">—</span></div>
+      <button class="btn-logout" onclick="openChangePassword()">🔑 Change Password</button>
       <button class="btn-logout" onclick="doLogout()">Sign Out</button>
     </div>
   </header>
@@ -850,6 +854,26 @@
   </div>
 </div>
 
+<!-- MODAL: Change Password -->
+<div class="modal-overlay" id="modal-change-password">
+  <div class="modal" style="width:400px;">
+    <div class="modal-title">🔑 Change Your Password</div>
+    <div class="modal-form-group">
+      <label>New Password</label>
+      <input type="password" id="cp-new-password" placeholder="Enter new password">
+    </div>
+    <div class="modal-form-group">
+      <label>Confirm New Password</label>
+      <input type="password" id="cp-confirm-password" placeholder="Re-enter new password">
+    </div>
+    <div id="cp-password-error" style="color:var(--red);font-size:13px;margin-top:-8px;display:none;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-change-password')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNewPassword()">Update Password</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -1058,9 +1082,50 @@ function isFirstWeek() {
   return NOW.getDate() <= 7;
 }
 
-// ═══════════════════════════════════
-// LOGIN / LOGOUT
-// ═══════════════════════════════════
+async function forgotPassword() {
+  const email = document.getElementById('login-email').value.trim();
+  const err = document.getElementById('login-error');
+  if (!email) {
+    err.textContent = 'Please enter your email address first.';
+    err.style.display = 'block';
+    return;
+  }
+  const { error } = await sb.auth.resetPasswordForEmail(email, {
+    redirectTo: 'https://emserout.github.io/Emser-App/'
+  });
+  if (error) {
+    err.textContent = error.message;
+    err.style.display = 'block';
+  } else {
+    err.style.color = 'green';
+    err.textContent = '✓ Password reset email sent! Check your inbox.';
+    err.style.display = 'block';
+  }
+}
+
+
+  document.getElementById('cp-new-password').value = '';
+  document.getElementById('cp-confirm-password').value = '';
+  document.getElementById('cp-password-error').style.display = 'none';
+  document.getElementById('modal-change-password').classList.add('open');
+}
+
+async function saveNewPassword() {
+  const newPass = document.getElementById('cp-new-password').value;
+  const confirm = document.getElementById('cp-confirm-password').value;
+  const err = document.getElementById('cp-password-error');
+  if (!newPass) { err.textContent = 'Please enter a new password.'; err.style.display = 'block'; return; }
+  if (newPass !== confirm) { err.textContent = 'Passwords do not match.'; err.style.display = 'block'; return; }
+  if (newPass.length < 6) { err.textContent = 'Password must be at least 6 characters.'; err.style.display = 'block'; return; }
+
+  const { error } = await sb.auth.updateUser({ password: newPass });
+  if (error) { err.textContent = error.message; err.style.display = 'block'; return; }
+
+  closeModal('modal-change-password');
+  showToast('✓ Password updated successfully');
+}
+
+
 function initLoginDropdown() {
   // Not used with Supabase auth
 }
