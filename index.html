@@ -1703,9 +1703,12 @@ function saveForecast() {
   const ud = getUserData(userId);
   if (!ud.forecast[year]) ud.forecast[year] = Array(12).fill(null).map(() => ({}));
 
-  document.querySelectorAll('#forecast-tbody tr').forEach((tr, i) => {
-    ud.forecast[year][i] = {
-      priorYear: tr.querySelector('.fc-prior').value,
+  document.querySelectorAll('#forecast-tbody tr').forEach((tr) => {
+    const priorInput = tr.querySelector('.fc-prior');
+    if (!priorInput) return; // skip quarter total rows
+    const month = parseInt(priorInput.dataset.month);
+    ud.forecast[year][month] = {
+      priorYear: priorInput.value,
       originalForecast: tr.querySelector('.fc-orig').value,
       editedForecast: tr.querySelector('.fc-edited').value,
       actual: tr.querySelector('.fc-actual').value,
