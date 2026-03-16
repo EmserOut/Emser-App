@@ -914,22 +914,38 @@ function hideSyncIndicator() {
 }
 
 async function initSupabase() {
-  await new Promise((res, rej) => {
-    const s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-    s.onload = res; s.onerror = rej;
-    document.head.appendChild(s);
-  });
-  sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  
-  // Check existing session
-  const { data: { session } } = await sb.auth.getSession();
-  if (session) {
-    await onAuthenticated(session.user);
+  try {
+    await new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  } catch(e) {
+    document.querySelector('#login-loading div:last-child').textContent = 'Could not load. Please refresh.';
     return;
   }
-  
-  // Show login screen
+
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // Handle password reset redirect
+  const hash = window.location.hash;
+  if (hash && hash.includes('type=recovery')) {
+    document.getElementById('login-loading').style.display = 'none';
+    showPasswordResetForm();
+    return;
+  }
+
+  // Check existing session
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      await onAuthenticated(session.user);
+      return;
+    }
+  } catch(e) { console.error(e); }
+
+  // No session — show login screen
   document.getElementById('login-loading').style.display = 'none';
 }
 
@@ -1080,6 +1096,34 @@ function showToast(msg) {
 
 function isFirstWeek() {
   return NOW.getDate() <= 7;
+}
+
+function showPasswordResetForm() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.querySelector('.login-card h2').textContent = 'Set New Password';
+  document.querySelector('.login-card p') && (document.querySelector('.login-card p').style.display = 'none');
+  document.getElementById('login-email').style.display = 'none';
+  document.querySelector('label[for="login-email"]') && (document.querySelector('label[for="login-email"]').style.display = 'none');
+  document.querySelector('.btn-login').textContent = 'Set New Password';
+  document.querySelector('.btn-login').onclick = resetPasswordFromLink;
+}
+
+async function resetPasswordFromLink() {
+  const newPass = document.getElementById('login-password').value;
+  const err = document.getElementById('login-error');
+  if (!newPass || newPass.length < 6) {
+    err.textContent = 'Password must be at least 6 characters.';
+    err.style.display = 'block';
+    return;
+  }
+  const { error } = await sb.auth.updateUser({ password: newPass });
+  if (error) {
+    err.textContent = error.message;
+    err.style.display = 'block';
+  } else {
+    showToast('✓ Password updated! Please sign in.');
+    location.href = location.pathname;
+  }
 }
 
 async function forgotPassword() {
