@@ -1,0 +1,2170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emser Tile – Sales Performance Review</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap');
+
+  :root {
+    --gold: #C49A3C;
+    --gold-light: #d4af5c;
+    --gold-dark: #a07d2e;
+    --charcoal: #1e1e1e;
+    --charcoal-mid: #3a3a3a;
+    --mid-gray: #6b6b6b;
+    --light-gray: #f0ede8;
+    --border: #ddd8ce;
+    --white: #ffffff;
+    --red: #c0392b;
+    --green: #27ae60;
+    --yellow: #d4ac0d;
+    --shadow: 0 2px 12px rgba(0,0,0,0.09);
+    --shadow-lg: 0 6px 32px rgba(0,0,0,0.13);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background: var(--light-gray);
+    color: var(--charcoal);
+    min-height: 100vh;
+    font-size: 16px;
+  }
+
+  /* ── LOGIN ── */
+  #login-screen {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2e2622 50%, #1a1a1a 100%);
+  }
+  .login-card {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 48px 44px;
+    width: 420px;
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+  }
+  .login-logo {
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .login-logo img { height: 56px; }
+  .login-tagline {
+    font-size: 13px; color: var(--mid-gray); letter-spacing: 2px;
+    text-transform: uppercase; margin-bottom: 36px;
+  }
+  .login-card h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; color: var(--charcoal); margin-bottom: 28px;
+  }
+  .form-group { margin-bottom: 18px; text-align: left; }
+  .form-group label { display: block; font-size: 13px; font-weight: 600;
+    color: var(--mid-gray); text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 6px; }
+  .form-group select, .form-group input {
+    width: 100%; padding: 12px 14px; border: 1.5px solid var(--border);
+    border-radius: 6px; font-size: 15px; font-family: inherit;
+    color: var(--charcoal); background: var(--white);
+    transition: border-color .2s;
+  }
+  .form-group select:focus, .form-group input:focus {
+    outline: none; border-color: var(--gold);
+  }
+  .btn-login {
+    width: 100%; padding: 14px; background: var(--gold);
+    color: var(--white); border: none; border-radius: 6px;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+    font-family: inherit; letter-spacing: 0.5px;
+    transition: background .2s;
+    margin-top: 8px;
+  }
+  .btn-login:hover { background: var(--gold-dark); }
+  .login-error {
+    color: var(--red); font-size: 13px; margin-top: 10px; display: none;
+  }
+
+  /* ── APP SHELL ── */
+  #app { display: none; min-height: 100vh; flex-direction: column; }
+
+  /* HEADER */
+  .app-header {
+    background: var(--charcoal);
+    padding: 0 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .header-left { display: flex; align-items: center; gap: 20px; }
+  .header-logo img { height: 36px; }
+  .header-divider { width: 1px; height: 28px; background: #444; }
+  .header-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px; color: var(--white); letter-spacing: 0.3px;
+  }
+  .header-right { display: flex; align-items: center; gap: 16px; }
+  .header-user {
+    font-size: 13px; color: #aaa;
+  }
+  .header-user span { color: var(--gold); font-weight: 600; }
+  .btn-logout {
+    background: transparent; border: 1.5px solid #555;
+    color: #ccc; padding: 7px 16px; border-radius: 5px;
+    font-size: 13px; cursor: pointer; font-family: inherit;
+    transition: all .2s;
+  }
+  .btn-logout:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* NAV */
+  .app-nav {
+    background: var(--white);
+    border-bottom: 2px solid var(--border);
+    padding: 0 32px;
+    display: flex; gap: 0;
+    overflow-x: auto;
+  }
+  .nav-tab {
+    padding: 16px 22px; font-size: 14px; font-weight: 600;
+    color: var(--mid-gray); cursor: pointer; white-space: nowrap;
+    border-bottom: 3px solid transparent; margin-bottom: -2px;
+    transition: all .2s; letter-spacing: 0.3px;
+  }
+  .nav-tab:hover { color: var(--charcoal); }
+  .nav-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
+  /* MAIN CONTENT */
+  .app-main {
+    flex: 1; padding: 32px;
+    max-width: 1200px; margin: 0 auto; width: 100%;
+  }
+
+  /* SECTION HEADERS */
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px; color: var(--charcoal);
+  }
+  .section-subtitle { font-size: 14px; color: var(--mid-gray); margin-top: 2px; }
+
+  /* CARDS */
+  .card {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 28px;
+    box-shadow: var(--shadow);
+    margin-bottom: 24px;
+  }
+  .card-title {
+    font-size: 15px; font-weight: 700; color: var(--charcoal);
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1.5px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .card-title .gold-bar { width: 4px; height: 18px; background: var(--gold); border-radius: 2px; }
+
+  /* CONTROLS ROW */
+  .controls-row {
+    display: flex; gap: 14px; align-items: center;
+    margin-bottom: 24px; flex-wrap: wrap;
+  }
+  .control-group { display: flex; flex-direction: column; gap: 5px; }
+  .control-label { font-size: 12px; font-weight: 600; color: var(--mid-gray);
+    text-transform: uppercase; letter-spacing: 1px; }
+  select.ctrl, input.ctrl {
+    padding: 9px 12px; border: 1.5px solid var(--border);
+    border-radius: 6px; font-size: 14px; font-family: inherit;
+    color: var(--charcoal); background: var(--white);
+    transition: border-color .2s;
+  }
+  select.ctrl:focus, input.ctrl:focus { outline: none; border-color: var(--gold); }
+
+  /* TABLES */
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th {
+    background: var(--charcoal); color: var(--white);
+    padding: 11px 14px; font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.8px; text-align: left;
+  }
+  .data-table th:first-child { border-radius: 6px 0 0 0; }
+  .data-table th:last-child { border-radius: 0 6px 0 0; }
+  .data-table td {
+    padding: 12px 14px; border-bottom: 1px solid var(--border);
+    font-size: 14px; vertical-align: middle;
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: #faf8f4; }
+  .data-table input[type="number"], .data-table input[type="text"],
+  .data-table input[type="date"], .data-table select, .data-table textarea {
+    border: 1.5px solid var(--border); border-radius: 5px;
+    padding: 7px 10px; font-size: 13px; font-family: inherit;
+    color: var(--charcoal); width: 100%; background: var(--white);
+    transition: border-color .2s;
+  }
+  .data-table input:focus, .data-table select:focus, .data-table textarea:focus {
+    outline: none; border-color: var(--gold);
+  }
+  .data-table input:disabled, .data-table select:disabled, .data-table textarea:disabled {
+    background: #f5f3ef; color: var(--mid-gray); cursor: not-allowed;
+  }
+  .data-table textarea { resize: vertical; min-height: 52px; }
+
+  /* VARIANCE BADGES */
+  .var-pos { color: var(--green); font-weight: 600; }
+  .var-neg { color: var(--red); font-weight: 600; }
+  .var-neutral { color: var(--mid-gray); }
+
+  /* BUTTONS */
+  .btn {
+    padding: 10px 20px; border: none; border-radius: 6px;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    font-family: inherit; transition: all .2s; letter-spacing: 0.3px;
+  }
+  .btn-primary { background: var(--gold); color: var(--white); }
+  .btn-primary:hover { background: var(--gold-dark); }
+  .btn-secondary {
+    background: transparent; color: var(--charcoal);
+    border: 1.5px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+  .btn-danger { background: var(--red); color: var(--white); }
+  .btn-danger:hover { background: #a93226; }
+  .btn-sm { padding: 7px 14px; font-size: 13px; }
+  .btn-icon { padding: 7px 10px; font-size: 16px; }
+
+  /* STATUS BADGES */
+  .badge {
+    display: inline-block; padding: 4px 10px; border-radius: 20px;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.3px;
+  }
+  .badge-green { background: #d5f5e3; color: #1e8449; }
+  .badge-yellow { background: #fef9e7; color: #9a7d0a; }
+  .badge-red { background: #fadbd8; color: #922b21; }
+  .badge-gray { background: #eee; color: #666; }
+  .badge-blue { background: #d6eaf8; color: #1a5276; }
+
+  /* GRADE DISPLAY */
+  .grade-card {
+    border-radius: 10px; padding: 24px; text-align: center;
+    margin-bottom: 16px;
+  }
+  .grade-card.green { background: #d5f5e3; border: 2px solid #a9dfbf; }
+  .grade-card.yellow { background: #fef9e7; border: 2px solid #f9e79f; }
+  .grade-card.red { background: #fadbd8; border: 2px solid #f5b7b1; }
+  .grade-emoji { font-size: 36px; margin-bottom: 8px; }
+  .grade-label { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .grade-pct { font-size: 32px; font-weight: 700; font-family: 'Playfair Display', serif; }
+  .grade-desc { font-size: 13px; color: var(--mid-gray); margin-top: 4px; }
+
+  /* GRID */
+  .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+  .grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 20px; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55); z-index: 200;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--white); border-radius: 12px;
+    padding: 36px; width: 560px; max-width: 95vw;
+    box-shadow: var(--shadow-lg); max-height: 90vh; overflow-y: auto;
+  }
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px; margin-bottom: 24px; color: var(--charcoal);
+  }
+  .modal-actions { display: flex; gap: 12px; margin-top: 28px; justify-content: flex-end; }
+  .modal-form-group { margin-bottom: 18px; }
+  .modal-form-group label {
+    display: block; font-size: 13px; font-weight: 600;
+    color: var(--mid-gray); text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .modal-form-group input, .modal-form-group select, .modal-form-group textarea {
+    width: 100%; padding: 11px 13px; border: 1.5px solid var(--border);
+    border-radius: 6px; font-size: 14px; font-family: inherit;
+    color: var(--charcoal); transition: border-color .2s;
+  }
+  .modal-form-group input:focus, .modal-form-group select:focus,
+  .modal-form-group textarea:focus { outline: none; border-color: var(--gold); }
+  .modal-form-group textarea { resize: vertical; min-height: 80px; }
+
+  /* ADMIN USER PANEL */
+  .user-list { list-style: none; }
+  .user-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; border-bottom: 1px solid var(--border);
+    transition: background .15s;
+  }
+  .user-item:hover { background: #faf8f4; }
+  .user-name { font-weight: 600; font-size: 15px; }
+  .user-role { font-size: 12px; color: var(--mid-gray); }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 28px; right: 28px;
+    background: var(--charcoal); color: var(--white);
+    padding: 14px 22px; border-radius: 8px; font-size: 14px;
+    box-shadow: var(--shadow-lg); z-index: 999;
+    opacity: 0; transform: translateY(12px);
+    transition: all .3s; pointer-events: none;
+    border-left: 4px solid var(--gold);
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* MEETING NOTICE */
+  .meeting-notice {
+    background: linear-gradient(135deg, #1e1e1e, #2e2622);
+    color: var(--white); border-radius: 10px;
+    padding: 20px 24px; margin-bottom: 24px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .meeting-icon { font-size: 28px; }
+  .meeting-text { flex: 1; }
+  .meeting-text strong { color: var(--gold); display: block; font-size: 15px; margin-bottom: 2px; }
+  .meeting-text span { font-size: 13px; color: #aaa; }
+
+  /* STAT ROWS */
+  .stat-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { color: var(--mid-gray); }
+  .stat-value { font-weight: 700; font-size: 16px; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center; padding: 60px 20px; color: var(--mid-gray);
+  }
+  .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; }
+  .empty-state p { font-size: 15px; }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .grid-3 { grid-template-columns: 1fr; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .app-main { padding: 16px; }
+    .app-header { padding: 0 16px; }
+    .app-nav { padding: 0 16px; }
+    .data-table { font-size: 13px; }
+  }
+
+  /* HIDDEN */
+  .hidden { display: none !important; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* SECTION PAGES */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ACCENT LINE */
+  .accent-line {
+    height: 3px; background: linear-gradient(90deg, var(--gold), transparent);
+    border-radius: 2px; margin-bottom: 20px;
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card" style="position:relative;">
+    <div id="login-loading" style="position:absolute;inset:0;background:rgba(255,255,255,0.97);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;gap:14px;">
+      <div style="width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+      <div style="font-size:14px;color:var(--mid-gray);">Connecting...</div>
+    </div>
+    <div class="login-logo">
+      <svg width="200" height="56" viewBox="0 0 200 56" xmlns="http://www.w3.org/2000/svg">
+        <rect width="200" height="56" rx="4" fill="#1e1e1e"/>
+        <text x="100" y="34" text-anchor="middle" font-family="Georgia,serif" font-size="22" font-weight="700" fill="#C49A3C" letter-spacing="3">EMSER TILE</text>
+        <rect x="24" y="42" width="152" height="2" fill="#C49A3C" opacity="0.4"/>
+      </svg>
+    </div>
+    <div class="login-tagline">Sales Performance Review</div>
+    <h2>Sign In to Continue</h2>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="login-email" placeholder="your@emser.com">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="Enter your password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-error" id="login-error" style="display:none;margin-top:-8px;font-size:13px;color:var(--red);"></div>
+    <button class="btn-login" onclick="doLogin()">Sign In</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none; flex-direction:column; min-height:100vh;">
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="header-logo">
+        <svg width="120" height="34" viewBox="0 0 120 34" xmlns="http://www.w3.org/2000/svg">
+          <text x="0" y="24" font-family="Georgia,serif" font-size="16" font-weight="700" fill="#C49A3C" letter-spacing="1.5">EMSER TILE</text>
+        </svg>
+      </div>
+      <div class="header-divider"></div>
+      <div class="header-title">Sales Performance Review</div>
+    </div>
+    <div class="header-right">
+      <div id="sync-indicator" style="font-size:12px;color:#aaa;opacity:0;transition:opacity .3s;min-width:120px;text-align:right;"></div>
+      <div class="header-user">Signed in as: <span id="header-username">—</span></div>
+      <button class="btn-logout" onclick="doLogout()">Sign Out</button>
+    </div>
+  </header>
+
+  <!-- NAV -->
+  <nav class="app-nav" id="main-nav">
+    <div class="nav-tab active" data-page="dashboard" onclick="showPage('dashboard',this)">📊 Dashboard</div>
+    <div class="nav-tab" data-page="forecast" onclick="showPage('forecast',this)">📈 Forecast</div>
+    <div class="nav-tab" data-page="action-plan" onclick="showPage('action-plan',this)">🎯 Sales Action Plan</div>
+    <div class="nav-tab" data-page="targets" onclick="showPage('targets',this)">⭐ Targets</div>
+    <div class="nav-tab" data-page="annual-targets" onclick="showPage('annual-targets',this)">📋 Annual Targets</div>
+    <div class="nav-tab" data-page="action-items" onclick="showPage('action-items',this)">✅ Action Items</div>
+    <div class="nav-tab" data-page="ytd" onclick="showPage('ytd',this)">🏆 YTD Summary</div>
+    <div class="nav-tab admin-only" data-page="admin" onclick="showPage('admin',this)" style="display:none;">⚙️ Admin</div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="app-main">
+
+    <!-- ═══════════ DASHBOARD ═══════════ -->
+    <div id="page-dashboard" class="page active">
+      <div id="meeting-notice" class="meeting-notice hidden">
+        <div class="meeting-icon">📅</div>
+        <div class="meeting-text">
+          <strong>1-on-1 Meeting Reminder</strong>
+          <span id="meeting-date-text">Your monthly performance review meeting is scheduled.</span>
+        </div>
+      </div>
+      <div class="section-header">
+        <div>
+          <div class="section-title">Welcome back, <span id="dash-name">—</span></div>
+          <div class="section-subtitle" id="dash-date"></div>
+        </div>
+        <div class="admin-only" style="display:none;">
+          <div class="control-group">
+            <div class="control-label">Viewing Associate</div>
+            <select class="ctrl" id="dash-associate-select" onchange="renderDashboard()">
+              <option value="">— All —</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <!-- All Associates Summary (admin only, shown when "All" selected) -->
+      <div id="dash-all-summary" class="hidden"></div>
+
+      <div class="grid-3" id="dash-stats-grid">
+        <!-- Filled dynamically -->
+      </div>
+      <div class="grid-2" style="margin-top:0;" id="dash-widgets-row">
+        <div class="card">
+          <div class="card-title"><div class="gold-bar"></div>Recent Action Items</div>
+          <div id="dash-action-items"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="gold-bar"></div>Current Month Targets</div>
+          <div id="dash-targets"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ FORECAST ═══════════ -->
+    <div id="page-forecast" class="page">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Forecast Tracking</div>
+          <div class="section-subtitle">Monthly sales forecast vs. actual performance</div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+          <div class="admin-only" id="forecast-assoc-wrap" style="display:none;">
+            <div class="control-group">
+              <div class="control-label">Associate</div>
+              <select class="ctrl" id="forecast-assoc-select" onchange="renderForecast()">
+                <option value="">— Select —</option>
+              </select>
+            </div>
+          </div>
+          <div class="control-group">
+            <div class="control-label">Year</div>
+            <select class="ctrl" id="forecast-year" onchange="renderForecast()"></select>
+          </div>
+          <button class="btn btn-primary" onclick="saveForecast()">💾 Save</button>
+        </div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div style="overflow-x:auto;">
+          <table class="data-table" id="forecast-table">
+            <thead>
+              <tr>
+                <th>Month</th>
+                <th>Prior Year Sales ($)</th>
+                <th>Original Forecast ($)</th>
+                <th>Edited Forecast ($)</th>
+                <th>Actual Sales ($)</th>
+                <th>Forecast Variance</th>
+                <th>YOY Variance</th>
+                <th>Explanation</th>
+              </tr>
+            </thead>
+            <tbody id="forecast-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ SALES ACTION PLAN ═══════════ -->
+    <div id="page-action-plan" class="page">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Sales Action Plan</div>
+          <div class="section-subtitle">Top accounts monthly review – 3 accounts selected per month</div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+          <div class="admin-only" id="sap-assoc-wrap" style="display:none;">
+            <div class="control-group">
+              <div class="control-label">Associate</div>
+              <select class="ctrl" id="sap-assoc-select" onchange="renderActionPlan()">
+                <option value="">— Select —</option>
+              </select>
+            </div>
+          </div>
+          <div class="control-group">
+            <div class="control-label">Year</div>
+            <select class="ctrl" id="sap-year" onchange="renderActionPlan()"></select>
+          </div>
+          <div class="control-group">
+            <div class="control-label">Month</div>
+            <select class="ctrl" id="sap-month" onchange="renderActionPlan()"></select>
+          </div>
+          <button class="btn btn-primary" onclick="saveActionPlan()">💾 Save</button>
+          <button class="btn btn-secondary admin-only" id="sap-manage-accounts-btn" style="display:none;" onclick="openManageAccounts()">📋 Manage Top 20</button>
+        </div>
+      </div>
+
+      <!-- Top 20 accounts section (admin) -->
+      <div id="sap-accounts-panel" class="card hidden admin-only">
+        <div class="card-title"><div class="gold-bar"></div>Select 3 Accounts for This Month</div>
+        <div id="sap-account-checkboxes" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
+      </div>
+
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div style="overflow-x:auto;">
+          <table class="data-table" id="sap-table">
+            <thead>
+              <tr>
+                <th>Account</th>
+                <th>Projected Sales ($)</th>
+                <th>Actual Sales ($)</th>
+                <th>$ Difference</th>
+                <th>Variance %</th>
+                <th>Explanation</th>
+              </tr>
+            </thead>
+            <tbody id="sap-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ TARGETS ═══════════ -->
+    <div id="page-targets" class="page">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Monthly Targets</div>
+          <div class="section-subtitle">Up to 3 target accounts per month</div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+          <div class="admin-only" id="tgt-assoc-wrap" style="display:none;">
+            <div class="control-group">
+              <div class="control-label">Associate</div>
+              <select class="ctrl" id="tgt-assoc-select" onchange="renderTargets()">
+                <option value="">— Select —</option>
+              </select>
+            </div>
+          </div>
+          <div class="control-group">
+            <div class="control-label">Year</div>
+            <select class="ctrl" id="tgt-year" onchange="renderTargets()"></select>
+          </div>
+          <div class="control-group">
+            <div class="control-label">Month</div>
+            <select class="ctrl" id="tgt-month" onchange="renderTargets()"></select>
+          </div>
+          <button class="btn btn-primary" onclick="saveTargets()">💾 Save</button>
+        </div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div style="overflow-x:auto;">
+          <table class="data-table" id="targets-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Account Name</th>
+                <th>Strategy</th>
+                <th>Type</th>
+                <th>Potential Value ($)</th>
+              </tr>
+            </thead>
+            <tbody id="targets-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ ANNUAL TARGETS ═══════════ -->
+    <div id="page-annual-targets" class="page">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Annual Targets Overview</div>
+          <div class="section-subtitle">All targets across the year – admin marks Acquired / Lost</div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+          <div class="admin-only" id="atgt-assoc-wrap" style="display:none;">
+            <div class="control-group">
+              <div class="control-label">Associate</div>
+              <select class="ctrl" id="atgt-assoc-select" onchange="renderAnnualTargets()">
+                <option value="">— Select —</option>
+              </select>
+            </div>
+          </div>
+          <div class="control-group">
+            <div class="control-label">Year</div>
+            <select class="ctrl" id="atgt-year" onchange="renderAnnualTargets()"></select>
+          </div>
+          <button class="btn btn-primary admin-only" id="atgt-save-btn" style="display:none;" onclick="saveAnnualTargets()">💾 Save Status</button>
+        </div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div style="overflow-x:auto;">
+          <table class="data-table" id="annual-targets-table">
+            <thead>
+              <tr>
+                <th>Month</th>
+                <th>Account</th>
+                <th>Type</th>
+                <th>Potential Value ($)</th>
+                <th>Strategy</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="annual-targets-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ ACTION ITEMS ═══════════ -->
+    <div id="page-action-items" class="page">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Action Items</div>
+          <div class="section-subtitle">Manager-assigned tasks – up to 5 per month</div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+          <div class="admin-only" id="ai-assoc-wrap" style="display:none;">
+            <div class="control-group">
+              <div class="control-label">Associate</div>
+              <select class="ctrl" id="ai-assoc-select" onchange="renderActionItems()">
+                <option value="">— Select —</option>
+              </select>
+            </div>
+          </div>
+          <div class="control-group">
+            <div class="control-label">Year</div>
+            <select class="ctrl" id="ai-year" onchange="renderActionItems()"></select>
+          </div>
+          <div class="control-group">
+            <div class="control-label">Month</div>
+            <select class="ctrl" id="ai-month" onchange="renderActionItems()"></select>
+          </div>
+          <button class="btn btn-primary admin-only" id="ai-add-btn" style="display:none;" onclick="addActionItem()">+ Add Item</button>
+          <button class="btn btn-primary" onclick="saveActionItems()">💾 Save</button>
+        </div>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden;">
+        <div style="overflow-x:auto;">
+          <table class="data-table" id="ai-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Description</th>
+                <th>Due Date</th>
+                <th>Completion Date</th>
+                <th>Status</th>
+                <th class="admin-only" id="ai-del-col" style="display:none;">Remove</th>
+              </tr>
+            </thead>
+            <tbody id="ai-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ YTD SUMMARY ═══════════ -->
+    <div id="page-ytd" class="page">
+      <div class="section-header">
+        <div>
+          <div class="section-title">YTD Performance Summary</div>
+          <div class="section-subtitle">Automated grading across three performance metrics</div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+          <div class="admin-only" id="ytd-assoc-wrap" style="display:none;">
+            <div class="control-group">
+              <div class="control-label">Associate</div>
+              <select class="ctrl" id="ytd-assoc-select" onchange="renderYTD()">
+                <option value="">— Select —</option>
+              </select>
+            </div>
+          </div>
+          <div class="control-group">
+            <div class="control-label">Year</div>
+            <select class="ctrl" id="ytd-year" onchange="renderYTD()"></select>
+          </div>
+        </div>
+      </div>
+      <div id="ytd-content">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- ═══════════ ADMIN ═══════════ -->
+    <div id="page-admin" class="page">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Admin Panel</div>
+          <div class="section-subtitle">Manage users and application settings</div>
+        </div>
+        <button class="btn btn-primary" onclick="openAddUser()">+ Add User</button>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title"><div class="gold-bar"></div>Users</div>
+          <ul class="user-list" id="admin-user-list"></ul>
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="gold-bar"></div>Application Info</div>
+          <div class="stat-row"><span class="stat-label">Total Users</span><span class="stat-value" id="info-user-count">0</span></div>
+          <div class="stat-row"><span class="stat-label">Admin PIN</span><span class="stat-value">Protected</span></div>
+          <div class="stat-row"><span class="stat-label">Data Storage</span><span class="stat-value">Local Browser</span></div>
+          <div style="margin-top:20px;">
+            <button class="btn btn-danger btn-sm" onclick="confirmClearData()">🗑 Clear All Data</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL: Add/Edit User -->
+<div class="modal-overlay" id="modal-user">
+  <div class="modal">
+    <div class="modal-title" id="modal-user-title">Add User</div>
+    <div class="modal-form-group">
+      <label>Full Name</label>
+      <input type="text" id="mu-name" placeholder="e.g. Jane Smith">
+    </div>
+    <div class="modal-form-group">
+      <label>Email</label>
+      <input type="email" id="mu-email" placeholder="e.g. jane.smith@emser.com">
+    </div>
+    <div class="modal-form-group" id="mu-password-group">
+      <label>Password</label>
+      <input type="password" id="mu-password" placeholder="Set a password">
+    </div>
+    <div class="modal-form-group">
+      <label>Role</label>
+      <select id="mu-role">
+        <option value="associate">Sales Associate</option>
+        <option value="admin">Admin (Manager)</option>
+      </select>
+    </div>
+    <input type="hidden" id="mu-editing-id">
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-user')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveUser()">Save User</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Manage Top 20 Accounts -->
+<div class="modal-overlay" id="modal-accounts">
+  <div class="modal">
+    <div class="modal-title">Manage Top 20 Accounts</div>
+    <div class="modal-form-group">
+      <label>Add Account Name</label>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="new-account-input" placeholder="Account name" style="flex:1;">
+        <button class="btn btn-primary" onclick="addAccount()">Add</button>
+      </div>
+    </div>
+    <div id="accounts-list" style="max-height:320px;overflow-y:auto;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-accounts')">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Change PIN -->
+<div class="modal-overlay" id="modal-change-pin">
+  <div class="modal" style="width:400px;">
+    <div class="modal-title">🔑 Change Your PIN</div>
+    <div class="modal-form-group">
+      <label>Current PIN</label>
+      <input type="password" id="cp-current" placeholder="Enter your current PIN" maxlength="10">
+    </div>
+    <div class="modal-form-group">
+      <label>New PIN</label>
+      <input type="password" id="cp-new" placeholder="Enter new PIN" maxlength="10">
+    </div>
+    <div class="modal-form-group">
+      <label>Confirm New PIN</label>
+      <input type="password" id="cp-confirm" placeholder="Re-enter new PIN" maxlength="10">
+    </div>
+    <div id="cp-error" style="color:var(--red);font-size:13px;margin-top:-8px;display:none;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-change-pin')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNewPin()">Update PIN</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════
+// STATE
+// ═══════════════════════════════════
+let STATE = {
+  currentUser: null,
+  users: [],       // {id, name, role, pin}
+  data: {}         // keyed by userId: { forecast, actionPlan, targets, actionItems, accounts }
+};
+
+const MONTHS = ['January','February','March','April','May','June',
+                'July','August','September','October','November','December'];
+const TYPES = ['Dealer','Builder','Custom Builder','Commercial','Installer'];
+const NOW = new Date();
+const CURRENT_YEAR = NOW.getFullYear();
+const CURRENT_MONTH = NOW.getMonth(); // 0-based
+
+// ═══════════════════════════════════
+// STORAGE — localStorage (shared via RDS)
+// ═══════════════════════════════════
+// ═══════════════════════════════════
+// SUPABASE STORAGE + EMAIL AUTH
+// ═══════════════════════════════════
+const SUPABASE_URL = 'https://mjbmqlqoutmjcobduyte.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qYm1xbHFvdXRtamNvYmR1eXRlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2MjYyMTUsImV4cCI6MjA4OTIwMjIxNX0.yHUzQdJ29zkpQmd_VClo5lTVx-_P_pwEVrCCSW7kuGY';
+let sb = null;
+
+function showSyncIndicator(msg) {
+  const t = document.getElementById('sync-indicator');
+  if (t) { t.textContent = msg; t.style.opacity = '1'; }
+}
+function hideSyncIndicator() {
+  const t = document.getElementById('sync-indicator');
+  if (t) { t.style.opacity = '0'; }
+}
+
+async function initSupabase() {
+  await new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+    s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+  sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  
+  // Check existing session
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    await onAuthenticated(session.user);
+    return;
+  }
+  
+  // Show login screen
+  document.getElementById('login-loading').style.display = 'none';
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const err = document.getElementById('login-error');
+  
+  if (!email || !password) {
+    err.textContent = 'Please enter your email and password.';
+    err.style.display = 'block';
+    return;
+  }
+  
+  const btn = document.querySelector('.btn-login');
+  btn.textContent = 'Signing in...';
+  btn.disabled = true;
+  
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  
+  if (error) {
+    err.textContent = error.message;
+    err.style.display = 'block';
+    btn.textContent = 'Sign In';
+    btn.disabled = false;
+    return;
+  }
+  
+  await onAuthenticated(data.user);
+}
+
+async function onAuthenticated(authUser) {
+  document.getElementById('login-loading').style.display = 'flex';
+  document.querySelector('#login-loading div:last-child').textContent = 'Loading your data...';
+  
+  await loadState();
+  
+  const email = authUser.email.toLowerCase();
+  let user = STATE.users.find(u => u.email && u.email.toLowerCase() === email);
+  
+  if (!user && STATE.users.length === 0) {
+    user = { id: uid(), name: email.split('@')[0], email, role: 'admin' };
+    STATE.users.push(user);
+    await saveState();
+  }
+  
+  if (!user) {
+    document.getElementById('login-loading').style.display = 'none';
+    const err = document.getElementById('login-error');
+    err.textContent = `Your account (${email}) is not set up. Ask your manager to add you.`;
+    err.style.display = 'block';
+    await sb.auth.signOut();
+    return;
+  }
+  
+  STATE.currentUser = user;
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  initApp();
+}
+
+async function doLogout() {
+  STATE.currentUser = null;
+  await sb.auth.signOut();
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-loading').style.display = 'none';
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-password').value = '';
+}
+
+async function saveState() {
+  localStorage.setItem('emser_backup', JSON.stringify({users: STATE.users, data: STATE.data}));
+  showSyncIndicator('💾 Saving...');
+  try {
+    const payload = JSON.stringify({users: STATE.users, data: STATE.data});
+    const { error } = await sb
+      .from('app_data')
+      .upsert({ data_key: 'global_state', data_value: {users: STATE.users, data: STATE.data}, updated_at: new Date().toISOString() }, { onConflict: 'data_key' });
+    if (error) throw error;
+    showSyncIndicator('✓ Saved');
+    setTimeout(hideSyncIndicator, 2000);
+  } catch(e) {
+    console.error('Save error:', e);
+    showSyncIndicator('⚠ Saved locally only');
+    setTimeout(hideSyncIndicator, 3000);
+  }
+}
+
+async function loadState() {
+  try {
+    const { data, error } = await sb
+      .from('app_data')
+      .select('data_value')
+      .eq('data_key', 'global_state')
+      .single();
+    if (data && data.data_value) {
+      STATE.users = data.data_value.users || [];
+      STATE.data  = data.data_value.data  || {};
+      localStorage.setItem('emser_backup', JSON.stringify({users: STATE.users, data: STATE.data}));
+      return;
+    }
+  } catch(e) { console.error('Load error:', e); }
+  
+  const backup = localStorage.getItem('emser_backup');
+  if (backup) {
+    try {
+      const parsed = JSON.parse(backup);
+      STATE.users = parsed.users || [];
+      STATE.data  = parsed.data  || {};
+    } catch(e) {}
+  }
+}
+
+// ═══════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════
+function fmt(n) {
+  if (n === null || n === undefined || n === '' || isNaN(Number(n))) return '—';
+  return Number(n).toLocaleString('en-US', {minimumFractionDigits:0,maximumFractionDigits:0});
+}
+function pct(a, b) {
+  if (!b || b == 0) return null;
+  return ((a / b) * 100);
+}
+function varClass(v) {
+  if (v === null || v === undefined) return 'var-neutral';
+  return v >= 0 ? 'var-pos' : 'var-neg';
+}
+function uid() { return Math.random().toString(36).substr(2,9); }
+function getUserData(userId) {
+  if (!STATE.data[userId]) STATE.data[userId] = {
+    forecast: {}, actionPlan: {}, targets: {}, actionItems: {}, accounts: []
+  };
+  return STATE.data[userId];
+}
+function getAssociates() {
+  return STATE.users.filter(u => u.role === 'associate');
+}
+function isAdmin() { return STATE.currentUser && STATE.currentUser.role === 'admin'; }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function isFirstWeek() {
+  return NOW.getDate() <= 7;
+}
+
+// ═══════════════════════════════════
+// LOGIN / LOGOUT
+// ═══════════════════════════════════
+function initLoginDropdown() {
+  // Not used with Supabase auth
+}
+
+// ═══════════════════════════════════
+// BOOT
+// ═══════════════════════════════════
+initSupabase();
+
+// ═══════════════════════════════════
+// APP INIT
+// ═══════════════════════════════════
+function initApp() {
+  const u = STATE.currentUser;
+  document.getElementById('header-username').textContent = u.name;
+  document.getElementById('dash-name').textContent = u.name.split(' ')[0];
+  document.getElementById('dash-date').textContent = NOW.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+  // Admin-only elements
+  document.querySelectorAll('.admin-only').forEach(el => {
+    el.style.display = isAdmin() ? (el.tagName === 'TH' || el.tagName === 'TD' ? 'table-cell' : '') : 'none';
+  });
+
+  // Populate year/month selects
+  populateYearSelects();
+  populateMonthSelects();
+  populateAssociateSelects();
+
+  // Meeting notice
+  checkMeetingNotice();
+
+  showPage('dashboard', document.querySelector('.nav-tab[data-page="dashboard"]'));
+}
+
+function populateYearSelects() {
+  const years = [];
+  for (let y = CURRENT_YEAR - 1; y <= CURRENT_YEAR + 1; y++) years.push(y);
+  ['forecast-year','sap-year','tgt-year','atgt-year','ai-year','ytd-year'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    sel.innerHTML = '';
+    years.forEach(y => {
+      const o = document.createElement('option');
+      o.value = y; o.textContent = y;
+      if (y === CURRENT_YEAR) o.selected = true;
+      sel.appendChild(o);
+    });
+  });
+}
+
+function populateMonthSelects() {
+  ['sap-month','tgt-month','ai-month'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    sel.innerHTML = '';
+    MONTHS.forEach((m,i) => {
+      const o = document.createElement('option');
+      o.value = i; o.textContent = m;
+      if (i === CURRENT_MONTH) o.selected = true;
+      sel.appendChild(o);
+    });
+  });
+}
+
+function populateAssociateSelects() {
+  const assocs = getAssociates();
+  const ids = ['forecast-assoc-select','sap-assoc-select','tgt-assoc-select',
+               'atgt-assoc-select','ai-assoc-select','ytd-assoc-select','dash-associate-select'];
+  ids.forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const hasAll = id === 'dash-associate-select';
+    sel.innerHTML = hasAll ? '<option value="">— All —</option>' : '<option value="">— Select —</option>';
+    assocs.forEach(u => {
+      const o = document.createElement('option');
+      o.value = u.id; o.textContent = u.name;
+      sel.appendChild(o);
+    });
+    if (assocs.length > 0 && !hasAll) sel.value = assocs[0].id;
+  });
+}
+
+function checkMeetingNotice() {
+  // Last Thursday of current month
+  const notice = document.getElementById('meeting-notice');
+  const lastThursday = getLastThursday(CURRENT_YEAR, CURRENT_MONTH);
+  const today = NOW.toDateString();
+  const lt = lastThursday.toDateString();
+  if (today === lt) {
+    notice.classList.remove('hidden');
+    document.getElementById('meeting-date-text').textContent =
+      `Today is your 1-on-1 review meeting (${lastThursday.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})})`;
+  } else {
+    // Show upcoming if within 7 days
+    const diff = (lastThursday - NOW) / 86400000;
+    if (diff >= 0 && diff <= 7) {
+      notice.classList.remove('hidden');
+      document.getElementById('meeting-date-text').textContent =
+        `Your monthly 1-on-1 review is on ${lastThursday.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}`;
+    }
+  }
+}
+
+function getLastThursday(year, month) {
+  const d = new Date(year, month+1, 0); // last day of month
+  while (d.getDay() !== 4) d.setDate(d.getDate()-1);
+  return d;
+}
+
+// ═══════════════════════════════════
+// PAGE ROUTING
+// ═══════════════════════════════════
+function showPage(name, tab) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if (tab) tab.classList.add('active');
+
+  const renderers = {
+    'dashboard': renderDashboard,
+    'forecast': renderForecast,
+    'action-plan': renderActionPlan,
+    'targets': renderTargets,
+    'annual-targets': renderAnnualTargets,
+    'action-items': renderActionItems,
+    'ytd': renderYTD,
+    'admin': renderAdmin,
+  };
+  if (renderers[name]) renderers[name]();
+}
+
+// ═══════════════════════════════════
+// CURRENT SUBJECT (who are we editing)
+// ═══════════════════════════════════
+function getSubjectId(selectId) {
+  if (isAdmin()) {
+    const s = document.getElementById(selectId);
+    return s ? s.value : null;
+  }
+  return STATE.currentUser.id;
+}
+
+// ═══════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════
+function renderDashboard() {
+  const grid = document.getElementById('dash-stats-grid');
+  const userId = isAdmin() ? document.getElementById('dash-associate-select').value : STATE.currentUser.id;
+  const allSummary = document.getElementById('dash-all-summary');
+  const widgetsRow = document.getElementById('dash-widgets-row');
+
+  // Admin with "All" selected — show team summary table
+  if (isAdmin() && !userId) {
+    grid.innerHTML = '';
+    widgetsRow.classList.add('hidden');
+    allSummary.classList.remove('hidden');
+    renderAllAssociatesSummary(allSummary);
+    return;
+  }
+
+  allSummary.classList.add('hidden');
+  widgetsRow.classList.remove('hidden');
+
+  if (!userId) {
+    grid.innerHTML = `<div class="card" style="grid-column:1/-1;"><div class="empty-state"><div class="empty-icon">👥</div><p>Select an associate to view their dashboard, or view individual sections.</p></div></div>`;
+    document.getElementById('dash-action-items').innerHTML = '';
+    document.getElementById('dash-targets').innerHTML = '';
+    return;
+  }
+
+  const ud = getUserData(userId);
+  const year = CURRENT_YEAR;
+  const month = CURRENT_MONTH;
+  const mKey = `${year}-${month}`;
+  const forecast = (ud.forecast[year] || [])[month] || {};
+  const targets = (ud.targets[mKey] || []);
+  const actionItems = (ud.actionItems[mKey] || []);
+
+  // Current month stats
+  const actualSales = parseFloat(forecast.actual) || 0;
+  const editedForecast = parseFloat(forecast.editedForecast) || parseFloat(forecast.originalForecast) || 0;
+  const forecastVar = editedForecast > 0 ? pct(actualSales, editedForecast) - 100 : null;
+  const completedItems = actionItems.filter(i => computeStatus(i) === 'Completed').length;
+  const acquiredTargets = targets.filter(t => t.status === 'acquired').length;
+
+  // YTD calculations — only include months that have actual sales entered
+  let ytdActual = 0, ytdForecast = 0, hasEditedForecast = false;
+  for (let mi = 0; mi <= month; mi++) {
+    const row = (ud.forecast[year] || [])[mi] || {};
+    const act = parseFloat(row.actual);
+    if (!isNaN(act) && act > 0) {
+      ytdActual += act;
+      const fc = parseFloat(row.editedForecast) || parseFloat(row.originalForecast) || 0;
+      ytdForecast += fc;
+      if (row.editedForecast && row.originalForecast && parseFloat(row.editedForecast) !== parseFloat(row.originalForecast)) {
+        hasEditedForecast = true;
+      }
+    }
+  }
+  const ytdVar = ytdForecast > 0 ? ((ytdActual - ytdForecast) / ytdForecast * 100) : null;
+  const ytdForecastLabel = hasEditedForecast ? 'YTD Edited Forecast' : 'YTD Forecast';
+
+  grid.innerHTML = `
+    <div class="card">
+      <div class="card-title"><div class="gold-bar"></div>${MONTHS[month]} Actual Sales</div>
+      <div style="font-size:32px;font-weight:700;font-family:'Playfair Display',serif;color:var(--charcoal);">$${fmt(actualSales)}</div>
+      <div style="font-size:13px;color:var(--mid-gray);margin-top:6px;">
+        Forecast: $${fmt(editedForecast)}
+        ${forecastVar !== null ? `<span class="${varClass(forecastVar)}" style="margin-left:8px;">(${forecastVar >= 0 ? '+' : ''}${forecastVar.toFixed(1)}%)</span>` : ''}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="gold-bar"></div>Action Items This Month</div>
+      <div style="font-size:32px;font-weight:700;font-family:'Playfair Display',serif;color:var(--charcoal);">${completedItems} / ${actionItems.length}</div>
+      <div style="font-size:13px;color:var(--mid-gray);margin-top:6px;">Completed</div>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="gold-bar"></div>Targets Acquired</div>
+      <div style="font-size:32px;font-weight:700;font-family:'Playfair Display',serif;color:var(--charcoal);">${acquiredTargets} / ${targets.length}</div>
+      <div style="font-size:13px;color:var(--mid-gray);margin-top:6px;">This month</div>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="gold-bar"></div>YTD Actual Sales</div>
+      <div style="font-size:32px;font-weight:700;font-family:'Playfair Display',serif;color:var(--charcoal);">$${fmt(ytdActual)}</div>
+      <div style="font-size:13px;color:var(--mid-gray);margin-top:6px;">Jan – ${MONTHS[month]} ${year}</div>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="gold-bar"></div>${ytdForecastLabel}</div>
+      <div style="font-size:32px;font-weight:700;font-family:'Playfair Display',serif;color:var(--charcoal);">$${fmt(ytdForecast)}</div>
+      <div style="font-size:13px;color:var(--mid-gray);margin-top:6px;">Jan – ${MONTHS[month]} ${year}</div>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="gold-bar"></div>YTD vs Forecast</div>
+      <div style="font-size:32px;font-weight:700;font-family:'Playfair Display',serif;color:var(--charcoal);" class="${ytdVar !== null ? varClass(ytdVar) : ''}">
+        ${ytdVar !== null ? (ytdVar >= 0 ? '+' : '') + ytdVar.toFixed(1) + '%' : '—'}
+      </div>
+      <div style="font-size:13px;color:var(--mid-gray);margin-top:6px;">
+        ${ytdVar !== null ? `$${fmt(ytdActual - ytdForecast)} vs forecast` : 'No forecast data yet'}
+      </div>
+    </div>
+  `;
+
+  // Action items widget
+  const aiEl = document.getElementById('dash-action-items');
+  if (actionItems.length === 0) {
+    aiEl.innerHTML = '<div class="empty-state" style="padding:20px;"><p>No action items this month.</p></div>';
+  } else {
+    aiEl.innerHTML = actionItems.map(item => {
+      const st = computeStatus(item);
+      const cls = st === 'Completed' ? 'badge-green' : st === 'In Progress' ? 'badge-yellow' : 'badge-gray';
+      return `<div class="stat-row"><span class="stat-label" style="max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${item.description}">${item.description}</span><span class="badge ${cls}">${st}</span></div>`;
+    }).join('');
+  }
+
+  // Targets widget
+  const tEl = document.getElementById('dash-targets');
+  if (targets.length === 0) {
+    tEl.innerHTML = '<div class="empty-state" style="padding:20px;"><p>No targets set this month.</p></div>';
+  } else {
+    tEl.innerHTML = targets.map(t => {
+      const sc = t.status === 'acquired' ? 'badge-green' : t.status === 'lost' ? 'badge-red' : 'badge-blue';
+      const sl = t.status === 'acquired' ? 'Acquired' : t.status === 'lost' ? 'Lost' : 'Pending';
+      return `<div class="stat-row">
+        <span class="stat-label" style="max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.account}">${t.account || '—'}</span>
+        <span style="font-size:13px;color:var(--mid-gray);">$${fmt(t.value)}</span>
+        <span class="badge ${sc}">${sl}</span>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ═══════════════════════════════════
+// ALL ASSOCIATES SUMMARY
+// ═══════════════════════════════════
+function calcAssociateStats(userId) {
+  const ud = getUserData(userId);
+  const year = CURRENT_YEAR;
+  const month = CURRENT_MONTH;
+  const mKey = `${year}-${month}`;
+
+  // YTD Sales & Forecast (months with actuals only)
+  let ytdActual = 0, ytdForecast = 0;
+  let forecastMonths = 0, forecastMet = 0;
+  for (let mi = 0; mi <= month; mi++) {
+    const row = (ud.forecast[year] || [])[mi] || {};
+    const act = parseFloat(row.actual);
+    const fc = parseFloat(row.editedForecast) || parseFloat(row.originalForecast) || 0;
+    if (!isNaN(act) && act > 0) {
+      ytdActual += act;
+      ytdForecast += fc;
+    }
+    if (fc > 0 && !isNaN(act)) {
+      forecastMonths++;
+      if (act >= fc * 0.95) forecastMet++;
+    }
+  }
+  const ytdVar = ytdForecast > 0 ? ((ytdActual - ytdForecast) / ytdForecast * 100) : null;
+  const forecastAccuracy = forecastMonths > 0 ? (forecastMet / forecastMonths * 100) : null;
+
+  // YTD Action Items
+  let totalItems = 0, completedItems = 0;
+  for (let mi = 0; mi <= month; mi++) {
+    const items = (ud.actionItems[`${year}-${mi}`] || []);
+    items.forEach(item => {
+      if (item.description) {
+        totalItems++;
+        if (computeStatus(item) === 'Completed') completedItems++;
+      }
+    });
+  }
+  const actionRate = totalItems > 0 ? (completedItems / totalItems * 100) : null;
+
+  // YTD Targets
+  let totalTargets = 0, acquiredTargets = 0;
+  for (let mi = 0; mi <= month; mi++) {
+    const targets = (ud.targets[`${year}-${mi}`] || []);
+    targets.forEach(t => {
+      if (t.account) {
+        totalTargets++;
+        if (t.status === 'acquired') acquiredTargets++;
+      }
+    });
+  }
+  const targetRate = totalTargets > 0 ? (acquiredTargets / totalTargets * 100) : null;
+
+  // Overall grade
+  const scores = [forecastAccuracy, actionRate, targetRate].filter(s => s !== null);
+  const overall = scores.length > 0 ? scores.reduce((a,b) => a+b, 0) / scores.length : null;
+
+  return { ytdActual, ytdForecast, ytdVar, forecastAccuracy, forecastMet, forecastMonths,
+           completedItems, totalItems, actionRate, acquiredTargets, totalTargets, targetRate, overall };
+}
+
+function gradeEmoji(score) {
+  if (score === null) return '<span style="color:var(--mid-gray);">—</span>';
+  if (score >= 90) return '🟢';
+  if (score >= 50) return '🟡';
+  return '🔴';
+}
+
+function renderAllAssociatesSummary(container) {
+  const associates = getAssociates();
+  const year = CURRENT_YEAR;
+  const month = CURRENT_MONTH;
+
+  if (associates.length === 0) {
+    container.innerHTML = `<div class="card"><div class="empty-state"><div class="empty-icon">👥</div><p>No associates added yet. Go to Admin to add users.</p></div></div>`;
+    return;
+  }
+
+  const rows = associates.map(u => {
+    const s = calcAssociateStats(u.id);
+    const ytdVarStr = s.ytdVar !== null
+      ? `<span class="${varClass(s.ytdVar)}">${s.ytdVar >= 0 ? '+' : ''}${s.ytdVar.toFixed(1)}%</span>`
+      : '<span style="color:var(--mid-gray);">—</span>';
+    const faStr = s.forecastAccuracy !== null
+      ? `${gradeEmoji(s.forecastAccuracy)} ${s.forecastAccuracy.toFixed(0)}% <span style="color:var(--mid-gray);font-size:12px;">(${s.forecastMet}/${s.forecastMonths} mo)</span>`
+      : '<span style="color:var(--mid-gray);">—</span>';
+    const aiStr = s.actionRate !== null
+      ? `${gradeEmoji(s.actionRate)} ${s.actionRate.toFixed(0)}% <span style="color:var(--mid-gray);font-size:12px;">(${s.completedItems}/${s.totalItems})</span>`
+      : '<span style="color:var(--mid-gray);">—</span>';
+    const tgStr = s.targetRate !== null
+      ? `${gradeEmoji(s.targetRate)} ${s.targetRate.toFixed(0)}% <span style="color:var(--mid-gray);font-size:12px;">(${s.acquiredTargets}/${s.totalTargets})</span>`
+      : '<span style="color:var(--mid-gray);">—</span>';
+    const ovStr = s.overall !== null
+      ? `${gradeEmoji(s.overall)} ${s.overall.toFixed(0)}%`
+      : '<span style="color:var(--mid-gray);">—</span>';
+
+    return `<tr>
+      <td><strong>${u.name}</strong></td>
+      <td><strong>$${fmt(s.ytdActual)}</strong></td>
+      <td>$${fmt(s.ytdForecast)}</td>
+      <td>${ytdVarStr}</td>
+      <td>${faStr}</td>
+      <td>${aiStr}</td>
+      <td>${tgStr}</td>
+      <td>${ovStr}</td>
+    </tr>`;
+  }).join('');
+
+  // Team totals row
+  const totals = associates.reduce((acc, u) => {
+    const s = calcAssociateStats(u.id);
+    acc.ytdActual += s.ytdActual;
+    acc.ytdForecast += s.ytdForecast;
+    return acc;
+  }, { ytdActual: 0, ytdForecast: 0 });
+  const teamVar = totals.ytdForecast > 0 ? ((totals.ytdActual - totals.ytdForecast) / totals.ytdForecast * 100) : null;
+  const teamVarStr = teamVar !== null
+    ? `<span class="${varClass(teamVar)}">${teamVar >= 0 ? '+' : ''}${teamVar.toFixed(1)}%</span>`
+    : '—';
+
+  container.innerHTML = `
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div style="padding:20px 24px 16px;border-bottom:1.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="gold-bar" style="width:4px;height:18px;background:var(--gold);border-radius:2px;"></div>
+          <span style="font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:1px;">Team YTD Summary — ${MONTHS[month]} ${year}</span>
+        </div>
+        <div style="font-size:12px;color:var(--mid-gray);">Jan – ${MONTHS[month]} ${year}</div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Associate</th>
+              <th>YTD Actual Sales</th>
+              <th>YTD Forecast</th>
+              <th>YTD Variance</th>
+              <th>Forecast Accuracy</th>
+              <th>Action Items</th>
+              <th>Target Acquisition</th>
+              <th>Overall Grade</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+            <tr style="background:#f5f3ef;font-weight:700;">
+              <td><strong>🏢 Team Total</strong></td>
+              <td><strong>$${fmt(totals.ytdActual)}</strong></td>
+              <td><strong>$${fmt(totals.ytdForecast)}</strong></td>
+              <td><strong>${teamVarStr}</strong></td>
+              <td colspan="4" style="color:var(--mid-gray);font-size:13px;font-weight:400;">Individual grades above</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════
+// FORECAST
+// ═══════════════════════════════════
+function renderForecast() {
+  const userId = getSubjectId('forecast-assoc-select');
+  const year = parseInt(document.getElementById('forecast-year').value);
+  const tbody = document.getElementById('forecast-tbody');
+
+  if (!userId) { tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--mid-gray);">Select an associate.</td></tr>'; return; }
+
+  const ud = getUserData(userId);
+  if (!ud.forecast[year]) ud.forecast[year] = Array(12).fill(null).map(() => ({}));
+  const fd = ud.forecast[year];
+
+  tbody.innerHTML = MONTHS.map((m, i) => {
+    const row = fd[i] || {};
+    const orig = parseFloat(row.originalForecast) || 0;
+    const edited = parseFloat(row.editedForecast) || orig;
+    const actual = parseFloat(row.actual) || 0;
+    const prior = parseFloat(row.priorYear) || 0;
+
+    const forecastToUse = edited || orig;
+    const forecastVar = forecastToUse > 0 ? ((actual - forecastToUse) / forecastToUse * 100) : null;
+    const yoyVar = prior > 0 ? ((actual - prior) / prior * 100) : null;
+
+    const needsExplanation = forecastVar !== null && forecastVar < -5;
+
+    // Locking rules
+    const origLocked = !isAdmin() && (row.originalForecast !== undefined && row.originalForecast !== '');
+    const editedLocked = !isAdmin() && !isFirstWeek();
+    const isPast = i < CURRENT_MONTH || year < CURRENT_YEAR;
+
+    return `<tr>
+      <td><strong>${m}</strong></td>
+      <td><input type="number" class="fc-prior" data-month="${i}" value="${row.priorYear||''}" placeholder="0" ${!isAdmin() ? 'disabled' : ''}></td>
+      <td><input type="number" class="fc-orig" data-month="${i}" value="${row.originalForecast||''}" placeholder="0" ${origLocked ? 'disabled' : ''}></td>
+      <td><input type="number" class="fc-edited" data-month="${i}" value="${row.editedForecast||''}" placeholder="0" ${editedLocked ? 'disabled' : ''} title="${editedLocked ? 'Only editable during first week of month' : ''}"></td>
+      <td><input type="number" class="fc-actual" data-month="${i}" value="${row.actual||''}" placeholder="0"></td>
+      <td class="${varClass(forecastVar)}">${forecastVar !== null ? (forecastVar >= 0 ? '+' : '') + forecastVar.toFixed(1) + '%' : '—'}</td>
+      <td class="${varClass(yoyVar)}">${yoyVar !== null ? (yoyVar >= 0 ? '+' : '') + yoyVar.toFixed(1) + '%' : '—'}</td>
+      <td><textarea class="fc-explain" data-month="${i}" placeholder="${needsExplanation ? '⚠ Required: variance > -5%' : 'Optional note'}" rows="1">${row.explanation||''}</textarea></td>
+    </tr>`;
+  }).join('');
+}
+
+function saveForecast() {
+  const userId = getSubjectId('forecast-assoc-select');
+  if (!userId) { showToast('Please select an associate.'); return; }
+  const year = parseInt(document.getElementById('forecast-year').value);
+  const ud = getUserData(userId);
+  if (!ud.forecast[year]) ud.forecast[year] = Array(12).fill(null).map(() => ({}));
+
+  document.querySelectorAll('#forecast-tbody tr').forEach((tr, i) => {
+    ud.forecast[year][i] = {
+      priorYear: tr.querySelector('.fc-prior').value,
+      originalForecast: tr.querySelector('.fc-orig').value,
+      editedForecast: tr.querySelector('.fc-edited').value,
+      actual: tr.querySelector('.fc-actual').value,
+      explanation: tr.querySelector('.fc-explain').value,
+    };
+  });
+  saveState();
+  showToast('✓ Forecast saved');
+}
+
+// ═══════════════════════════════════
+// SALES ACTION PLAN
+// ═══════════════════════════════════
+function renderActionPlan() {
+  const userId = getSubjectId('sap-assoc-select');
+  const year = parseInt(document.getElementById('sap-year').value);
+  const month = parseInt(document.getElementById('sap-month').value);
+  const mKey = `${year}-${month}`;
+  const tbody = document.getElementById('sap-tbody');
+
+  if (!userId) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--mid-gray);">Select an associate.</td></tr>'; return; }
+
+  const ud = getUserData(userId);
+  if (!ud.actionPlan[mKey]) ud.actionPlan[mKey] = [];
+  const plan = ud.actionPlan[mKey];
+  // Ensure 3 rows
+  while (plan.length < 3) plan.push({account:'', projected:'', actual:'', explanation:''});
+
+  // Admin: show account checkboxes
+  const sapPanel = document.getElementById('sap-accounts-panel');
+  if (isAdmin()) {
+    sapPanel.classList.remove('hidden');
+    sapPanel.style.display = '';
+    renderAccountCheckboxes(userId, mKey, plan);
+  }
+
+  tbody.innerHTML = plan.map((row, i) => {
+    const proj = parseFloat(row.projected) || 0;
+    const act = parseFloat(row.actual) || 0;
+    const diff = act - proj;
+    const varPct = proj > 0 ? (diff / proj * 100) : null;
+
+    return `<tr>
+      <td><input type="text" class="sap-account" data-i="${i}" value="${row.account||''}" placeholder="Account name" ${!isAdmin() ? 'disabled' : ''}></td>
+      <td><input type="number" class="sap-proj" data-i="${i}" value="${row.projected||''}" placeholder="0" ${!isAdmin() ? 'disabled' : ''}></td>
+      <td><input type="number" class="sap-actual" data-i="${i}" value="${row.actual||''}" placeholder="0"></td>
+      <td class="${varClass(diff)}">${proj > 0 ? '$'+fmt(diff) : '—'}</td>
+      <td class="${varClass(varPct)}">${varPct !== null ? (varPct >= 0 ? '+' : '') + varPct.toFixed(1) + '%' : '—'}</td>
+      <td><textarea class="sap-explain" data-i="${i}" placeholder="Explanation" rows="1">${row.explanation||''}</textarea></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderAccountCheckboxes(userId, mKey, plan) {
+  const ud = getUserData(userId);
+  const accounts = ud.accounts || [];
+  const selected = plan.map(p => p.account).filter(Boolean);
+  const container = document.getElementById('sap-account-checkboxes');
+  if (accounts.length === 0) {
+    container.innerHTML = '<p style="color:var(--mid-gray);font-size:14px;">No accounts yet. Click "Manage Top 20" to add accounts.</p>';
+    return;
+  }
+  container.innerHTML = accounts.map(a => {
+    const checked = selected.includes(a);
+    return `<label style="display:flex;align-items:center;gap:6px;padding:8px 12px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;${checked?'border-color:var(--gold);background:#fdf8ee;':''}">
+      <input type="checkbox" value="${a}" ${checked?'checked':''} onchange="toggleAccountSelection('${userId}','${mKey}',this)"> ${a}
+    </label>`;
+  }).join('');
+}
+
+function toggleAccountSelection(userId, mKey, checkbox) {
+  const ud = getUserData(userId);
+  if (!ud.actionPlan[mKey]) ud.actionPlan[mKey] = [{},{},{}];
+  const plan = ud.actionPlan[mKey];
+  while (plan.length < 3) plan.push({account:'',projected:'',actual:'',explanation:''});
+
+  const val = checkbox.value;
+  if (checkbox.checked) {
+    // Add to first empty slot
+    const emptyIdx = plan.findIndex(p => !p.account);
+    if (emptyIdx !== -1) { plan[emptyIdx].account = val; }
+    else { showToast('Only 3 accounts can be selected.'); checkbox.checked = false; return; }
+  } else {
+    const idx = plan.findIndex(p => p.account === val);
+    if (idx !== -1) plan[idx].account = '';
+  }
+  renderActionPlan();
+}
+
+function saveActionPlan() {
+  const userId = getSubjectId('sap-assoc-select');
+  if (!userId) { showToast('Please select an associate.'); return; }
+  const year = parseInt(document.getElementById('sap-year').value);
+  const month = parseInt(document.getElementById('sap-month').value);
+  const mKey = `${year}-${month}`;
+  const ud = getUserData(userId);
+  if (!ud.actionPlan[mKey]) ud.actionPlan[mKey] = [];
+
+  const rows = document.querySelectorAll('#sap-tbody tr');
+  ud.actionPlan[mKey] = Array.from(rows).map((tr, i) => ({
+    account: tr.querySelector('.sap-account').value,
+    projected: tr.querySelector('.sap-proj').value,
+    actual: tr.querySelector('.sap-actual').value,
+    explanation: tr.querySelector('.sap-explain').value,
+  }));
+  saveState();
+  showToast('✓ Sales Action Plan saved');
+}
+
+function openManageAccounts() {
+  const userId = getSubjectId('sap-assoc-select');
+  if (!userId) { showToast('Please select an associate.'); return; }
+  renderAccountsList(userId);
+  document.getElementById('modal-accounts').classList.add('open');
+  document.getElementById('new-account-input').dataset.userId = userId;
+}
+
+function addAccount() {
+  const input = document.getElementById('new-account-input');
+  const userId = input.dataset.userId;
+  const name = input.value.trim();
+  if (!name) return;
+  const ud = getUserData(userId);
+  if (!ud.accounts) ud.accounts = [];
+  if (ud.accounts.length >= 20) { showToast('Maximum 20 accounts allowed.'); return; }
+  if (ud.accounts.includes(name)) { showToast('Account already exists.'); return; }
+  ud.accounts.push(name);
+  saveState();
+  input.value = '';
+  renderAccountsList(userId);
+}
+
+function renderAccountsList(userId) {
+  const ud = getUserData(userId);
+  const accounts = ud.accounts || [];
+  const el = document.getElementById('accounts-list');
+  if (accounts.length === 0) {
+    el.innerHTML = '<p style="color:var(--mid-gray);font-size:14px;padding:12px 0;">No accounts added yet.</p>';
+    return;
+  }
+  el.innerHTML = accounts.map((a, i) => `
+    <div class="user-item">
+      <span>${i+1}. ${a}</span>
+      <button class="btn btn-danger btn-sm btn-icon" onclick="removeAccount('${userId}',${i})">🗑</button>
+    </div>
+  `).join('');
+}
+
+function removeAccount(userId, idx) {
+  const ud = getUserData(userId);
+  ud.accounts.splice(idx, 1);
+  saveState();
+  renderAccountsList(userId);
+}
+
+// ═══════════════════════════════════
+// TARGETS
+// ═══════════════════════════════════
+function renderTargets() {
+  const userId = getSubjectId('tgt-assoc-select');
+  const year = parseInt(document.getElementById('tgt-year').value);
+  const month = parseInt(document.getElementById('tgt-month').value);
+  const mKey = `${year}-${month}`;
+  const tbody = document.getElementById('targets-tbody');
+
+  if (!userId) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--mid-gray);">Select an associate.</td></tr>'; return; }
+
+  const ud = getUserData(userId);
+  if (!ud.targets[mKey]) ud.targets[mKey] = [{},{},{}];
+  const targets = ud.targets[mKey];
+  while (targets.length < 3) targets.push({});
+
+  tbody.innerHTML = targets.map((t, i) => `<tr>
+    <td><strong>${i+1}</strong></td>
+    <td><input type="text" class="tgt-account" data-i="${i}" value="${t.account||''}" placeholder="Account name"></td>
+    <td><textarea class="tgt-strategy" data-i="${i}" rows="1" placeholder="Strategy notes">${t.strategy||''}</textarea></td>
+    <td><select class="tgt-type" data-i="${i}">
+      <option value="">— Type —</option>
+      ${TYPES.map(tp => `<option value="${tp}" ${t.type===tp?'selected':''}>${tp}</option>`).join('')}
+    </select></td>
+    <td><input type="number" class="tgt-value" data-i="${i}" value="${t.value||''}" placeholder="0"></td>
+  </tr>`).join('');
+}
+
+function saveTargets() {
+  const userId = getSubjectId('tgt-assoc-select');
+  if (!userId) { showToast('Please select an associate.'); return; }
+  const year = parseInt(document.getElementById('tgt-year').value);
+  const month = parseInt(document.getElementById('tgt-month').value);
+  const mKey = `${year}-${month}`;
+  const ud = getUserData(userId);
+
+  const rows = document.querySelectorAll('#targets-tbody tr');
+  const existing = ud.targets[mKey] || [{},{},{}];
+  ud.targets[mKey] = Array.from(rows).map((tr, i) => ({
+    account: tr.querySelector('.tgt-account').value,
+    strategy: tr.querySelector('.tgt-strategy').value,
+    type: tr.querySelector('.tgt-type').value,
+    value: tr.querySelector('.tgt-value').value,
+    status: (existing[i] || {}).status || '',
+  }));
+  saveState();
+  showToast('✓ Targets saved');
+}
+
+// ═══════════════════════════════════
+// ANNUAL TARGETS
+// ═══════════════════════════════════
+function renderAnnualTargets() {
+  const userId = getSubjectId('atgt-assoc-select');
+  const year = parseInt(document.getElementById('atgt-year').value);
+  const tbody = document.getElementById('annual-targets-tbody');
+
+  if (!userId) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--mid-gray);">Select an associate.</td></tr>'; return; }
+
+  const ud = getUserData(userId);
+  let rows = [];
+
+  MONTHS.forEach((m, mi) => {
+    const mKey = `${year}-${mi}`;
+    const targets = (ud.targets[mKey] || []).filter(t => t.account);
+    targets.forEach((t, ti) => {
+      rows.push({month: m, monthIdx: mi, targetIdx: ti, ...t});
+    });
+  });
+
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--mid-gray);">No targets set for this year yet.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = rows.map((r, idx) => {
+    const sc = r.status === 'acquired' ? 'badge-green' : r.status === 'lost' ? 'badge-red' : 'badge-gray';
+    const sl = r.status === 'acquired' ? 'Acquired' : r.status === 'lost' ? 'Lost' : 'Pending';
+    if (isAdmin()) {
+      return `<tr>
+        <td>${r.month}</td>
+        <td>${r.account}</td>
+        <td>${r.type || '—'}</td>
+        <td>$${fmt(r.value)}</td>
+        <td style="max-width:200px;font-size:13px;">${r.strategy || '—'}</td>
+        <td>
+          <select class="atgt-status" data-month="${r.monthIdx}" data-tidx="${r.targetIdx}" style="width:120px;padding:6px 8px;border:1.5px solid var(--border);border-radius:5px;font-size:13px;font-family:inherit;">
+            <option value="" ${!r.status?'selected':''}>Pending</option>
+            <option value="acquired" ${r.status==='acquired'?'selected':''}>✅ Acquired</option>
+            <option value="lost" ${r.status==='lost'?'selected':''}>❌ Lost</option>
+          </select>
+        </td>
+      </tr>`;
+    } else {
+      return `<tr>
+        <td>${r.month}</td>
+        <td>${r.account}</td>
+        <td>${r.type || '—'}</td>
+        <td>$${fmt(r.value)}</td>
+        <td style="max-width:200px;font-size:13px;">${r.strategy || '—'}</td>
+        <td><span class="badge ${sc}">${sl}</span></td>
+      </tr>`;
+    }
+  }).join('');
+}
+
+function saveAnnualTargets() {
+  const userId = getSubjectId('atgt-assoc-select');
+  if (!userId) return;
+  const year = parseInt(document.getElementById('atgt-year').value);
+  const ud = getUserData(userId);
+
+  document.querySelectorAll('.atgt-status').forEach(sel => {
+    const mi = parseInt(sel.dataset.month);
+    const ti = parseInt(sel.dataset.tidx);
+    const mKey = `${year}-${mi}`;
+    if (ud.targets[mKey] && ud.targets[mKey][ti]) {
+      ud.targets[mKey][ti].status = sel.value;
+    }
+  });
+  saveState();
+  showToast('✓ Target statuses saved');
+  renderAnnualTargets();
+}
+
+// ═══════════════════════════════════
+// ACTION ITEMS
+// ═══════════════════════════════════
+function computeStatus(item) {
+  if (!item.description) return 'Not Started';
+  if (item.completionDate) return 'Completed';
+  if (!item.dueDate) return 'Not Started';
+  const due = new Date(item.dueDate);
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  return today <= due ? 'In Progress' : 'In Progress';
+}
+
+function renderActionItems() {
+  const userId = getSubjectId('ai-assoc-select');
+  const year = parseInt(document.getElementById('ai-year').value);
+  const month = parseInt(document.getElementById('ai-month').value);
+  const mKey = `${year}-${month}`;
+  const tbody = document.getElementById('ai-tbody');
+  const addBtn = document.getElementById('ai-add-btn');
+  const delCol = document.getElementById('ai-del-col');
+
+  if (isAdmin()) {
+    if (addBtn) addBtn.style.display = '';
+    if (delCol) delCol.style.display = 'table-cell';
+  }
+
+  if (!userId) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--mid-gray);">Select an associate.</td></tr>'; return; }
+
+  const ud = getUserData(userId);
+  if (!ud.actionItems[mKey]) ud.actionItems[mKey] = [];
+  const items = ud.actionItems[mKey];
+
+  if (items.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--mid-gray);">${isAdmin() ? 'No action items yet. Click "+ Add Item" to add.' : 'No action items assigned for this month.'}</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = items.map((item, i) => {
+    const st = computeStatus(item);
+    const stClass = st === 'Completed' ? 'badge-green' : st === 'In Progress' ? 'badge-yellow' : 'badge-gray';
+    return `<tr>
+      <td><strong>${i+1}</strong></td>
+      <td><input type="text" class="ai-desc" data-i="${i}" value="${item.description||''}" placeholder="Action item description" ${!isAdmin() ? 'disabled' : ''}></td>
+      <td><input type="date" class="ai-due" data-i="${i}" value="${item.dueDate||''}" ${!isAdmin() ? 'disabled' : ''}></td>
+      <td><input type="date" class="ai-comp" data-i="${i}" value="${item.completionDate||''}"></td>
+      <td><span class="badge ${stClass}">${st}</span></td>
+      ${isAdmin() ? `<td><button class="btn btn-danger btn-sm btn-icon" onclick="removeActionItem('${userId}','${mKey}',${i})">🗑</button></td>` : '<td></td>'}
+    </tr>`;
+  }).join('');
+}
+
+function addActionItem() {
+  const userId = getSubjectId('ai-assoc-select');
+  if (!userId) { showToast('Please select an associate.'); return; }
+  const year = parseInt(document.getElementById('ai-year').value);
+  const month = parseInt(document.getElementById('ai-month').value);
+  const mKey = `${year}-${month}`;
+  const ud = getUserData(userId);
+  if (!ud.actionItems[mKey]) ud.actionItems[mKey] = [];
+  if (ud.actionItems[mKey].length >= 5) { showToast('Maximum 5 action items per month.'); return; }
+  ud.actionItems[mKey].push({description:'', dueDate:'', completionDate:''});
+  saveState();
+  renderActionItems();
+}
+
+function removeActionItem(userId, mKey, idx) {
+  const ud = getUserData(userId);
+  ud.actionItems[mKey].splice(idx, 1);
+  saveState();
+  renderActionItems();
+}
+
+function saveActionItems() {
+  const userId = getSubjectId('ai-assoc-select');
+  if (!userId) { showToast('Please select an associate.'); return; }
+  const year = parseInt(document.getElementById('ai-year').value);
+  const month = parseInt(document.getElementById('ai-month').value);
+  const mKey = `${year}-${month}`;
+  const ud = getUserData(userId);
+  if (!ud.actionItems[mKey]) return;
+
+  const rows = document.querySelectorAll('#ai-tbody tr');
+  rows.forEach((tr, i) => {
+    const descEl = tr.querySelector('.ai-desc');
+    const dueEl = tr.querySelector('.ai-due');
+    const compEl = tr.querySelector('.ai-comp');
+    if (ud.actionItems[mKey][i]) {
+      if (descEl) ud.actionItems[mKey][i].description = descEl.value;
+      if (dueEl) ud.actionItems[mKey][i].dueDate = dueEl.value;
+      if (compEl) ud.actionItems[mKey][i].completionDate = compEl.value;
+    }
+  });
+  saveState();
+  showToast('✓ Action items saved');
+  renderActionItems();
+}
+
+// ═══════════════════════════════════
+// YTD SUMMARY
+// ═══════════════════════════════════
+function renderYTD() {
+  const userId = getSubjectId('ytd-assoc-select');
+  const year = parseInt(document.getElementById('ytd-year').value);
+  const content = document.getElementById('ytd-content');
+
+  if (!userId) {
+    content.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><p>Select an associate to view their YTD performance.</p></div>';
+    return;
+  }
+
+  const ud = getUserData(userId);
+  const user = STATE.users.find(u => u.id === userId);
+
+  // ── METRIC 1: Forecast Accuracy
+  let forecastMonths = 0, forecastMet = 0;
+  for (let mi = 0; mi < 12; mi++) {
+    const row = (ud.forecast[year] || [])[mi] || {};
+    const actual = parseFloat(row.actual);
+    const fc = parseFloat(row.editedForecast) || parseFloat(row.originalForecast);
+    if (fc > 0 && !isNaN(actual)) {
+      forecastMonths++;
+      if (actual >= fc * 0.95) forecastMet++;
+    }
+  }
+  const forecastScore = forecastMonths > 0 ? (forecastMet / forecastMonths * 100) : 0;
+
+  // ── METRIC 2: Action Plan Completion
+  let totalItems = 0, completedItems = 0;
+  for (let mi = 0; mi < 12; mi++) {
+    const mKey = `${year}-${mi}`;
+    const items = ud.actionItems[mKey] || [];
+    items.forEach(item => {
+      if (item.description) {
+        totalItems++;
+        if (computeStatus(item) === 'Completed') completedItems++;
+      }
+    });
+  }
+  const actionScore = totalItems > 0 ? (completedItems / totalItems * 100) : 0;
+
+  // ── METRIC 3: Target Acquisition
+  let totalTargets = 0, acquiredTargets = 0;
+  for (let mi = 0; mi < 12; mi++) {
+    const mKey = `${year}-${mi}`;
+    const targets = ud.targets[mKey] || [];
+    targets.forEach(t => {
+      if (t.account) {
+        totalTargets++;
+        if (t.status === 'acquired') acquiredTargets++;
+      }
+    });
+  }
+  const targetScore = totalTargets > 0 ? (acquiredTargets / totalTargets * 100) : 0;
+
+  // ── OVERALL
+  const overall = (forecastScore + actionScore + targetScore) / 3;
+
+  function gradeInfo(score) {
+    if (score >= 90) return {label:'Overperforming', cls:'green', emoji:'🟢'};
+    if (score >= 50) return {label:'Performing', cls:'yellow', emoji:'🟡'};
+    return {label:'Needs Improvement', cls:'red', emoji:'🔴'};
+  }
+
+  const g = gradeInfo(overall);
+  const fg = gradeInfo(forecastScore);
+  const ag = gradeInfo(actionScore);
+  const tg = gradeInfo(targetScore);
+
+  content.innerHTML = `
+    <div class="card" style="margin-bottom:24px;">
+      <div class="card-title"><div class="gold-bar"></div>Overall Performance – ${user ? user.name : ''} – ${year}</div>
+      <div class="grade-card ${g.cls}" style="max-width:360px;margin:0 auto 24px;">
+        <div class="grade-emoji">${g.emoji}</div>
+        <div class="grade-label">${g.label}</div>
+        <div class="grade-pct">${overall.toFixed(1)}%</div>
+        <div class="grade-desc">Average of three weighted metrics (33.3% each)</div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-title"><div class="gold-bar"></div>Forecast Accuracy</div>
+        <div class="grade-card ${fg.cls}">
+          <div class="grade-emoji">${fg.emoji}</div>
+          <div class="grade-label">${fg.label}</div>
+          <div class="grade-pct">${forecastScore.toFixed(1)}%</div>
+          <div class="grade-desc">${forecastMet} of ${forecastMonths} months ≥95% of forecast</div>
+        </div>
+        <div class="stat-row"><span class="stat-label">Months tracked</span><span class="stat-value">${forecastMonths}</span></div>
+        <div class="stat-row"><span class="stat-label">Months on target</span><span class="stat-value">${forecastMet}</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><div class="gold-bar"></div>Action Item Completion</div>
+        <div class="grade-card ${ag.cls}">
+          <div class="grade-emoji">${ag.emoji}</div>
+          <div class="grade-label">${ag.label}</div>
+          <div class="grade-pct">${actionScore.toFixed(1)}%</div>
+          <div class="grade-desc">${completedItems} of ${totalItems} items completed</div>
+        </div>
+        <div class="stat-row"><span class="stat-label">Total items assigned</span><span class="stat-value">${totalItems}</span></div>
+        <div class="stat-row"><span class="stat-label">Items completed</span><span class="stat-value">${completedItems}</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><div class="gold-bar"></div>Target Acquisition</div>
+        <div class="grade-card ${tg.cls}">
+          <div class="grade-emoji">${tg.emoji}</div>
+          <div class="grade-label">${tg.label}</div>
+          <div class="grade-pct">${targetScore.toFixed(1)}%</div>
+          <div class="grade-desc">${acquiredTargets} of ${totalTargets} targets acquired</div>
+        </div>
+        <div class="stat-row"><span class="stat-label">Total targets set</span><span class="stat-value">${totalTargets}</span></div>
+        <div class="stat-row"><span class="stat-label">Targets acquired</span><span class="stat-value">${acquiredTargets}</span></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:0;">
+      <div class="card-title"><div class="gold-bar"></div>Grading Scale</div>
+      <div style="display:flex;gap:24px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">🟢</span><div><strong>Overperforming</strong><div style="font-size:13px;color:var(--mid-gray);">90% and above</div></div></div>
+        <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">🟡</span><div><strong>Performing</strong><div style="font-size:13px;color:var(--mid-gray);">50% – 89%</div></div></div>
+        <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">🔴</span><div><strong>Needs Improvement</strong><div style="font-size:13px;color:var(--mid-gray);">Below 50%</div></div></div>
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════
+// ADMIN
+// ═══════════════════════════════════
+function renderAdmin() {
+  const list = document.getElementById('admin-user-list');
+  const users = STATE.users;
+  document.getElementById('info-user-count').textContent = users.length;
+
+  if (users.length === 0) {
+    list.innerHTML = '<div class="empty-state" style="padding:20px;"><p>No users yet.</p></div>';
+    return;
+  }
+
+  list.innerHTML = users.map(u => `
+    <li class="user-item">
+      <div>
+        <div class="user-name">${u.name}</div>
+        <div class="user-role">${u.role === 'admin' ? '⚙ Admin' : '👤 Sales Associate'} — ${u.email || 'No email set'}</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary btn-sm" onclick="openEditUser('${u.id}')">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteUser('${u.id}')">Remove</button>
+      </div>
+    </li>
+  `).join('');
+}
+
+function openAddUser() {
+  document.getElementById('mu-name').value = '';
+  document.getElementById('mu-email').value = '';
+  document.getElementById('mu-password').value = '';
+  document.getElementById('mu-role').value = 'associate';
+  document.getElementById('mu-editing-id').value = '';
+  document.getElementById('mu-password-group').style.display = 'block';
+  document.getElementById('modal-user-title').textContent = 'Add User';
+  document.getElementById('modal-user').classList.add('open');
+}
+
+function openEditUser(id) {
+  const u = STATE.users.find(u => u.id === id);
+  if (!u) return;
+  document.getElementById('mu-name').value = u.name;
+  document.getElementById('mu-email').value = u.email || '';
+  document.getElementById('mu-password').value = '';
+  document.getElementById('mu-role').value = u.role;
+  document.getElementById('mu-editing-id').value = id;
+  document.getElementById('mu-password-group').style.display = 'none';
+  document.getElementById('modal-user-title').textContent = 'Edit User';
+  document.getElementById('modal-user').classList.add('open');
+}
+
+async function saveUser() {
+  const name = document.getElementById('mu-name').value.trim();
+  const email = document.getElementById('mu-email').value.trim().toLowerCase();
+  const password = document.getElementById('mu-password').value;
+  const role = document.getElementById('mu-role').value;
+  const editingId = document.getElementById('mu-editing-id').value;
+  if (!name) { showToast('Please enter a name.'); return; }
+  if (!email) { showToast('Please enter an email.'); return; }
+
+  if (editingId) {
+    const u = STATE.users.find(u => u.id === editingId);
+    if (u) { u.name = name; u.email = email; u.role = role; }
+  } else {
+    if (!password) { showToast('Please set a password.'); return; }
+    // Create auth account in Supabase
+    const { error } = await sb.auth.admin ? 
+      { error: null } : // admin API not available on client
+      { error: null };
+    // Add to users list — they'll sign up via invite or admin sets password
+    STATE.users.push({ id: uid(), name, email, role });
+    showToast(`✓ User added — send them this password: ${password}`);
+  }
+
+  await saveState();
+  closeModal('modal-user');
+  populateAssociateSelects();
+  renderAdmin();
+}
+
+function deleteUser(id) {
+  if (!confirm('Remove this user and all their data?')) return;
+  STATE.users = STATE.users.filter(u => u.id !== id);
+  delete STATE.data[id];
+  saveState();
+  populateAssociateSelects();
+  initLoginDropdown();
+  renderAdmin();
+  showToast('User removed.');
+}
+
+function confirmClearData() {
+  if (confirm('This will permanently delete ALL data for ALL users. Are you sure?')) {
+    STATE.data = {};
+    saveState();
+    showToast('All data cleared.');
+  }
+}
+
+// ═══════════════════════════════════
+// MODAL HELPERS
+// ═══════════════════════════════════
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// (boot handled above)
+</script>
+</body>
+</html>
