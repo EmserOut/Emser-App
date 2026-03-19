@@ -191,10 +191,21 @@
 
   /* TABLES */
   /* WINS */
-  .win-row { border:1px solid var(--border); border-radius:8px; padding:16px; margin-bottom:12px; background:var(--white); }
-  .win-row-header { font-weight:600; font-size:13px; color:var(--gold); margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; }
-  .win-fields { display:grid; grid-template-columns:140px 160px 1fr; gap:12px; align-items:start; }
-  .win-fields label { font-size:12px; color:var(--mid-gray); display:block; margin-bottom:4px; }
+  .win-row { border:1px solid var(--border); border-radius:12px; padding:20px 24px; margin-bottom:16px; background:var(--white); box-shadow:0 1px 4px rgba(0,0,0,0.04); }
+  .win-row-header { font-weight:700; font-size:13px; color:var(--gold); margin-bottom:14px; text-transform:uppercase; letter-spacing:1.5px; display:flex; align-items:center; gap:6px; }
+  .win-fields { display:grid; grid-template-columns:160px 200px 1fr; gap:16px; align-items:start; }
+  .win-fields label { font-size:12px; color:var(--mid-gray); display:block; margin-bottom:6px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; }
+  .win-fields input[type="text"], .win-fields input[type="number"] { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:8px; font-size:14px; font-family:inherit; background:var(--white); box-sizing:border-box; transition:border-color .2s; }
+  .win-fields input:focus { outline:none; border-color:var(--gold); }
+  .win-fields input:disabled { background:var(--light-gray); color:var(--mid-gray); }
+  .win-amount-wrapper { display:flex; align-items:center; border:1px solid var(--border); border-radius:8px; overflow:hidden; background:var(--white); transition:border-color .2s; }
+  .win-amount-wrapper:focus-within { border-color:var(--gold); }
+  .win-amount-prefix { padding:10px 10px 10px 12px; font-size:14px; font-weight:600; color:var(--mid-gray); background:var(--light-gray); border-right:1px solid var(--border); user-select:none; }
+  .win-amount-wrapper input { border:none; border-radius:0; padding:10px 12px; flex:1; min-width:0; font-size:14px; }
+  .win-amount-wrapper input:focus { outline:none; }
+  .win-amount-wrapper input:disabled { background:var(--light-gray); }
+  .win-amount-display { padding:10px 12px; font-size:14px; font-weight:600; color:var(--charcoal); border-left:1px solid var(--border); background:var(--light-gray); white-space:nowrap; min-width:80px; text-align:right; }
+  .win-total { background:linear-gradient(135deg,var(--charcoal),var(--charcoal-mid)); border-radius:10px; padding:16px 20px; font-weight:700; font-size:15px; display:flex; justify-content:space-between; align-items:center; margin-top:8px; color:white; }
   .win-total { background:var(--light-gray); border-radius:8px; padding:12px 16px; font-weight:600; font-size:15px; display:flex; justify-content:space-between; align-items:center; margin-top:8px; }
 
   /* MONTHLY REVIEW */
@@ -1147,6 +1158,27 @@ async function loadState() {
 // ═══════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════
+function fmtCents(n) {
+  if (n === null || n === undefined || n === '' || isNaN(Number(n))) return '—';
+  return Number(n).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function updateWinAmountDisplay(input) {
+  const idx = input.dataset.idx;
+  const disp = document.getElementById(`win-disp-${idx}`);
+  if (!disp) return;
+  const val = parseFloat(input.value);
+  disp.textContent = isNaN(val) ? '—' : fmtCents(val);
+  // Update total
+  let total = 0;
+  document.querySelectorAll('.win-amount').forEach(inp => {
+    total += parseFloat(inp.value) || 0;
+  });
+  const totalEl = document.querySelector('.win-total span:last-child');
+  if (totalEl) totalEl.textContent = '$' + fmtCents(total);
+}
+
+
 function fmt(n) {
   if (n === null || n === undefined || n === '' || isNaN(Number(n))) return '—';
   return '$' + Number(n).toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0});
@@ -2490,22 +2522,26 @@ function renderWins() {
       <div class="win-fields">
         <div>
           <label>Order Number</label>
-          <input type="text" class="win-order" data-idx="${i}" value="${w.order||''}" placeholder="e.g. 123456" ${!canEdit ? 'disabled' : ''} style="width:100%;">
+          <input type="text" class="win-order" data-idx="${i}" value="${w.order||''}" placeholder="e.g. 123456" ${!canEdit ? 'disabled' : ''}>
         </div>
         <div>
           <label>Amount</label>
-          <div class="input-dollar"><span>$</span><input type="number" class="win-amount" data-idx="${i}" value="${w.amount||''}" placeholder="0" ${!canEdit ? 'disabled' : ''}></div>
+          <div class="win-amount-wrapper">
+            <span class="win-amount-prefix">$</span>
+            <input type="number" class="win-amount" data-idx="${i}" value="${w.amount||''}" placeholder="0.00" step="0.01" ${!canEdit ? 'disabled' : ''} oninput="updateWinAmountDisplay(this)">
+            <span class="win-amount-display" id="win-disp-${i}">${w.amount ? fmtCents(parseFloat(w.amount)) : '—'}</span>
+          </div>
         </div>
         <div>
           <label>Context / Description</label>
-          <input type="text" class="win-context" data-idx="${i}" value="${w.context||''}" placeholder="e.g. Converted from DAL tile with better pricing" ${!canEdit ? 'disabled' : ''} style="width:100%;">
+          <input type="text" class="win-context" data-idx="${i}" value="${w.context||''}" placeholder="e.g. Converted from DAL tile with better pricing" ${!canEdit ? 'disabled' : ''}>
         </div>
       </div>
     </div>
   `).join('') + `
     <div class="win-total">
       <span>Total Wins Amount</span>
-      <span style="font-size:20px;color:var(--gold);">${fmt(total)}</span>
+      <span style="font-size:22px;color:var(--gold);">$${fmtCents(total)}</span>
     </div>
   `;
 }
