@@ -190,7 +190,33 @@
   select.ctrl:focus, input.ctrl:focus { outline: none; border-color: var(--gold); }
 
   /* TABLES */
-  .input-dollar { display:flex; align-items:center; gap:2px; }
+  /* WINS */
+  .win-row { border:1px solid var(--border); border-radius:8px; padding:16px; margin-bottom:12px; background:var(--white); }
+  .win-row-header { font-weight:600; font-size:13px; color:var(--gold); margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; }
+  .win-fields { display:grid; grid-template-columns:140px 160px 1fr; gap:12px; align-items:start; }
+  .win-fields label { font-size:12px; color:var(--mid-gray); display:block; margin-bottom:4px; }
+  .win-total { background:var(--light-gray); border-radius:8px; padding:12px 16px; font-weight:600; font-size:15px; display:flex; justify-content:space-between; align-items:center; margin-top:8px; }
+
+  /* MONTHLY REVIEW */
+  .review-accordion { border:1px solid var(--border); border-radius:10px; margin-bottom:12px; overflow:hidden; }
+  .review-accordion-header { background:var(--light-gray); padding:14px 18px; cursor:pointer; display:flex; justify-content:space-between; align-items:center; font-weight:600; font-size:15px; }
+  .review-accordion-header:hover { background:#e8e4dd; }
+  .review-accordion-body { padding:20px; display:none; border-top:1px solid var(--border); }
+  .review-accordion-body.open { display:block; }
+  .review-section { margin-bottom:24px; }
+  .review-section-title { font-size:13px; font-weight:700; color:var(--gold); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid var(--border); }
+  .review-stat-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; margin-bottom:12px; }
+  .review-stat-box { background:var(--light-gray); border-radius:8px; padding:12px; }
+  .review-stat-box .label { font-size:11px; color:var(--mid-gray); text-transform:uppercase; letter-spacing:.5px; }
+  .review-stat-box .value { font-size:18px; font-weight:700; margin-top:2px; }
+  .review-wins-list { list-style:disc; padding-left:20px; }
+  .review-wins-list li { margin-bottom:6px; font-size:14px; }
+  .review-textarea { width:100%; min-height:160px; padding:12px; border:1px solid var(--border); border-radius:8px; font-size:14px; font-family:inherit; resize:vertical; }
+  .admin-wins-summary .rep-block { margin-bottom:20px; }
+  .admin-wins-summary .rep-name { font-weight:700; font-size:15px; color:var(--charcoal); margin-bottom:6px; }
+  .admin-wins-summary ul { list-style:disc; padding-left:20px; }
+  .admin-wins-summary li { font-size:13px; margin-bottom:4px; color:var(--mid-gray); }
+
   .input-dollar span { font-size:13px; color:var(--mid-gray); font-weight:600; flex-shrink:0; }
   .input-dollar input { flex:1; min-width:0; }
   .data-table { width: 100%; border-collapse: collapse; }
@@ -447,6 +473,8 @@
     <div class="nav-tab" data-page="targets" onclick="showPage('targets',this)">⭐ Targets</div>
     <div class="nav-tab" data-page="annual-targets" onclick="showPage('annual-targets',this)">📋 Annual Targets</div>
     <div class="nav-tab" data-page="action-items" onclick="showPage('action-items',this)">✅ Action Items</div>
+    <div class="nav-tab" data-page="wins" onclick="showPage('wins',this)">🏅 Weekly Wins</div>
+    <div class="nav-tab" data-page="monthly-review" onclick="showPage('monthly-review',this)">📝 Monthly Review</div>
     <div class="nav-tab" data-page="ytd" onclick="showPage('ytd',this)">🏆 YTD Summary</div>
     <div class="nav-tab admin-only" data-page="admin" onclick="showPage('admin',this)" style="display:none;">⚙️ Admin</div>
   </nav>
@@ -756,6 +784,48 @@
     </div>
 
     <!-- ═══════════ ADMIN ═══════════ -->
+    <!-- ═══════════ WEEKLY WINS ═══════════ -->
+    <div id="page-wins" class="page">
+      <div id="wins-thursday-banner" style="display:none;background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:white;border-radius:10px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+        <span style="font-size:24px;">🔔</span>
+        <div>
+          <div style="font-weight:700;">Weekly Wins Reminder</div>
+          <div style="font-size:13px;opacity:.9;">It's Thursday! Please record your wins for this week before end of day.</div>
+        </div>
+      </div>
+      <div class="section-header">
+        <div>
+          <div class="section-title">Weekly Wins</div>
+          <div class="section-subtitle">Record up to 3 wins per week — order number, amount, and context</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <select class="ctrl admin-only" id="wins-assoc-select" onchange="renderWins()" style="display:none;"></select>
+          <select class="ctrl" id="wins-year" onchange="renderWins()"></select>
+          <select class="ctrl" id="wins-week" onchange="renderWins()"></select>
+          <button class="btn btn-primary" onclick="saveWins()">💾 Save</button>
+        </div>
+      </div>
+      <div class="card" id="wins-card">
+        <div id="wins-body"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════ MONTHLY REVIEW ═══════════ -->
+    <div id="page-monthly-review" class="page">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Monthly Review</div>
+          <div class="section-subtitle">Monthly performance review and 1-on-1 record</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <select class="ctrl admin-only" id="mr-assoc-select" onchange="renderMonthlyReview()" style="display:none;"></select>
+          <select class="ctrl" id="mr-year" onchange="renderMonthlyReview()"></select>
+        </div>
+      </div>
+      <div id="mr-body"></div>
+    </div>
+
+    <!-- ═══════════ ADMIN ═══════════ -->
     <div id="page-admin" class="page">
       <div class="section-header">
         <div>
@@ -778,6 +848,17 @@
             <button class="btn btn-danger btn-sm" onclick="confirmClearData()">🗑 Clear All Data</button>
           </div>
         </div>
+      </div>
+
+      <div class="card" style="margin-top:24px;">
+        <div class="section-header" style="margin-bottom:16px;">
+          <div class="card-title" style="margin:0;"><div class="gold-bar"></div>Weekly Wins Summary — All Reps</div>
+          <div style="display:flex;gap:8px;">
+            <select class="ctrl" id="admin-wins-year" onchange="renderAdminWins()"></select>
+            <select class="ctrl" id="admin-wins-week" onchange="renderAdminWins()"></select>
+          </div>
+        </div>
+        <div id="admin-wins-body" class="admin-wins-summary"></div>
       </div>
     </div>
 
@@ -1202,6 +1283,16 @@ function initApp() {
   populateMonthSelects();
   populateAssociateSelects();
 
+  // Wins week selects
+  populateWinsWeeks('wins-year', 'wins-week', renderWins);
+  populateWinsWeeks('admin-wins-year', 'admin-wins-week', renderAdminWins);
+
+  // Thursday wins reminder banner
+  if (NOW.getDay() === 4 && !isAdmin()) {
+    const banner = document.getElementById('wins-thursday-banner');
+    if (banner) banner.style.display = 'flex';
+  }
+
   // Meeting notice
   checkMeetingNotice();
 
@@ -1211,7 +1302,7 @@ function initApp() {
 function populateYearSelects() {
   const years = [];
   for (let y = CURRENT_YEAR - 1; y <= CURRENT_YEAR + 1; y++) years.push(y);
-  ['forecast-year','sap-year','tgt-year','atgt-year','ai-year','ytd-year'].forEach(id => {
+  ['forecast-year','sap-year','tgt-year','atgt-year','ai-year','ytd-year','mr-year'].forEach(id => {
     const sel = document.getElementById(id);
     if (!sel) return;
     sel.innerHTML = '';
@@ -1241,7 +1332,8 @@ function populateMonthSelects() {
 function populateAssociateSelects() {
   const assocs = getAssociates();
   const ids = ['forecast-assoc-select','sap-assoc-select','tgt-assoc-select',
-               'atgt-assoc-select','ai-assoc-select','ytd-assoc-select','dash-associate-select'];
+               'atgt-assoc-select','ai-assoc-select','ytd-assoc-select','dash-associate-select',
+               'wins-assoc-select','mr-assoc-select'];
   ids.forEach(id => {
     const sel = document.getElementById(id);
     if (!sel) return;
@@ -1299,6 +1391,8 @@ function showPage(name, tab) {
     'targets': renderTargets,
     'annual-targets': renderAnnualTargets,
     'action-items': renderActionItems,
+    'wins': renderWins,
+    'monthly-review': renderMonthlyReview,
     'ytd': renderYTD,
     'admin': renderAdmin,
   };
@@ -2314,6 +2408,319 @@ function confirmClearData() {
     saveState();
     showToast('All data cleared.');
   }
+}
+
+// ═══════════════════════════════════
+// WEEKLY WINS
+// ═══════════════════════════════════
+function getWeekNumber(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+
+function getWeekLabel(year, week) {
+  // Get date range for week
+  const jan1 = new Date(year, 0, 1);
+  const dayOfWeek = jan1.getDay() || 7;
+  const firstMonday = new Date(year, 0, 1 + (dayOfWeek === 1 ? 0 : 8 - dayOfWeek));
+  const weekStart = new Date(firstMonday);
+  weekStart.setDate(firstMonday.getDate() + (week - 1) * 7);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+  const fmt2 = d => d.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+  return `Week ${week} (${fmt2(weekStart)} – ${fmt2(weekEnd)})`;
+}
+
+function populateWinsWeeks(yearId, weekId, onchange) {
+  const yearSel = document.getElementById(yearId);
+  const weekSel = document.getElementById(weekId);
+  if (!yearSel || !weekSel) return;
+
+  // Populate years
+  yearSel.innerHTML = '';
+  for (let y = CURRENT_YEAR - 1; y <= CURRENT_YEAR + 1; y++) {
+    const o = document.createElement('option');
+    o.value = y; o.textContent = y;
+    if (y === CURRENT_YEAR) o.selected = true;
+    yearSel.appendChild(o);
+  }
+
+  function updateWeeks() {
+    const year = parseInt(yearSel.value);
+    const totalWeeks = getWeekNumber(new Date(year, 11, 28));
+    weekSel.innerHTML = '';
+    for (let w = 1; w <= totalWeeks; w++) {
+      const o = document.createElement('option');
+      o.value = w; o.textContent = getWeekLabel(year, w);
+      weekSel.appendChild(o);
+    }
+    // Select current week
+    const cur = getWeekNumber(NOW);
+    weekSel.value = Math.min(cur, totalWeeks);
+    if (onchange) onchange();
+  }
+
+  yearSel.onchange = () => { updateWeeks(); };
+  updateWeeks();
+}
+
+function renderWins() {
+  const userId = isAdmin() ? getSubjectId('wins-assoc-select') : STATE.currentUser.id;
+  const year = parseInt(document.getElementById('wins-year').value);
+  const week = parseInt(document.getElementById('wins-week').value);
+  const body = document.getElementById('wins-body');
+  if (!userId) { body.innerHTML = '<p style="padding:20px;color:var(--mid-gray);">Select an associate.</p>'; return; }
+
+  const ud = getUserData(userId);
+  if (!ud.wins) ud.wins = {};
+  const key = `${year}-W${week}`;
+  if (!ud.wins[key]) ud.wins[key] = [{order:'',amount:'',context:''},{order:'',amount:'',context:''},{order:'',amount:'',context:''}];
+  const wins = ud.wins[key];
+
+  const canEdit = !isAdmin();
+
+  let total = wins.reduce((s, w) => s + (parseFloat(w.amount) || 0), 0);
+
+  body.innerHTML = wins.map((w, i) => `
+    <div class="win-row">
+      <div class="win-row-header">🏅 Win #${i+1}</div>
+      <div class="win-fields">
+        <div>
+          <label>Order Number</label>
+          <input type="text" class="win-order" data-idx="${i}" value="${w.order||''}" placeholder="e.g. 123456" ${!canEdit ? 'disabled' : ''} style="width:100%;">
+        </div>
+        <div>
+          <label>Amount</label>
+          <div class="input-dollar"><span>$</span><input type="number" class="win-amount" data-idx="${i}" value="${w.amount||''}" placeholder="0" ${!canEdit ? 'disabled' : ''}></div>
+        </div>
+        <div>
+          <label>Context / Description</label>
+          <input type="text" class="win-context" data-idx="${i}" value="${w.context||''}" placeholder="e.g. Converted from DAL tile with better pricing" ${!canEdit ? 'disabled' : ''} style="width:100%;">
+        </div>
+      </div>
+    </div>
+  `).join('') + `
+    <div class="win-total">
+      <span>Total Wins Amount</span>
+      <span style="font-size:20px;color:var(--gold);">${fmt(total)}</span>
+    </div>
+  `;
+}
+
+function saveWins() {
+  if (isAdmin()) { showToast('Wins are edited by sales reps only.'); return; }
+  const userId = STATE.currentUser.id;
+  const year = parseInt(document.getElementById('wins-year').value);
+  const week = parseInt(document.getElementById('wins-week').value);
+  const key = `${year}-W${week}`;
+  const ud = getUserData(userId);
+  if (!ud.wins) ud.wins = {};
+  const wins = [{},{},{}];
+  document.querySelectorAll('.win-row').forEach((row, i) => {
+    wins[i] = {
+      order: row.querySelector('.win-order').value,
+      amount: row.querySelector('.win-amount').value,
+      context: row.querySelector('.win-context').value,
+    };
+  });
+  ud.wins[key] = wins;
+  saveState();
+  showToast('✓ Wins saved');
+  renderWins();
+}
+
+function renderAdminWins() {
+  const body = document.getElementById('admin-wins-body');
+  if (!body) return;
+  const year = parseInt(document.getElementById('admin-wins-year').value);
+  const week = parseInt(document.getElementById('admin-wins-week').value);
+  const key = `${year}-W${week}`;
+  const associates = getAssociates();
+
+  if (associates.length === 0) {
+    body.innerHTML = '<p style="color:var(--mid-gray);padding:12px;">No associates yet.</p>';
+    return;
+  }
+
+  body.innerHTML = associates.map(u => {
+    const ud = getUserData(u.id);
+    const wins = (ud.wins && ud.wins[key]) || [];
+    const hasWins = wins.some(w => w.order || w.amount || w.context);
+    if (!hasWins) return `<div class="rep-block"><div class="rep-name">${u.name}</div><p style="font-size:13px;color:var(--mid-gray);margin:0;">No wins recorded this week.</p></div>`;
+    return `<div class="rep-block">
+      <div class="rep-name">${u.name}</div>
+      <ul>${wins.filter(w => w.order || w.amount || w.context).map(w =>
+        `<li>${w.order ? `Order #${w.order} — ` : ''}${w.amount ? fmt(parseFloat(w.amount)||0) : ''}${w.context ? ` — ${w.context}` : ''}</li>`
+      ).join('')}</ul>
+    </div>`;
+  }).join('<hr style="margin:12px 0;border:none;border-top:1px solid var(--border);">');
+}
+
+// ═══════════════════════════════════
+// MONTHLY REVIEW
+// ═══════════════════════════════════
+function renderMonthlyReview() {
+  const userId = isAdmin() ? getSubjectId('mr-assoc-select') : STATE.currentUser.id;
+  const year = parseInt(document.getElementById('mr-year').value);
+  const body = document.getElementById('mr-body');
+  if (!userId) { body.innerHTML = '<p style="padding:20px;color:var(--mid-gray);">Select an associate.</p>'; return; }
+
+  const ud = getUserData(userId);
+  if (!ud.monthlyReview) ud.monthlyReview = {};
+
+  body.innerHTML = MONTHS.map((month, mi) => {
+    const key = `${year}-${mi}`;
+    const review = ud.monthlyReview[key] || { conversation: '', actionItems: '' };
+    const isOpen = mi === (CURRENT_MONTH > 0 ? CURRENT_MONTH - 1 : 11);
+
+    // Gather previous month data
+    const prevYear = mi === 0 ? year - 1 : year;
+    const prevMonth = mi === 0 ? 11 : mi - 1;
+    const fcData = (ud.forecast[year] || [])[prevMonth] || {};
+    const prevFcData = (ud.forecast[prevYear] || [])[prevMonth] || {};
+    const actual = parseFloat(fcData.actual) || 0;
+    const edited = parseFloat(fcData.editedForecast) || parseFloat(fcData.originalForecast) || 0;
+    const priorYear = parseFloat(fcData.priorYear) || 0;
+    const fcVar = edited > 0 ? ((actual - edited) / edited * 100) : null;
+    const yoyVar = priorYear > 0 ? ((actual - priorYear) / priorYear * 100) : null;
+
+    // Wins for prev month (sum all weeks in that month)
+    let winsTotal = 0;
+    const winsCount = getWeekNumber(new Date(year, 11, 28));
+    for (let w = 1; w <= winsCount; w++) {
+      const wKey = `${year}-W${w}`;
+      const weekWins = (ud.wins && ud.wins[wKey]) || [];
+      // Check if this week falls in prevMonth
+      const jan1 = new Date(year, 0, 1);
+      const dow = jan1.getDay() || 7;
+      const firstMon = new Date(year, 0, 1 + (dow === 1 ? 0 : 8 - dow));
+      const wStart = new Date(firstMon);
+      wStart.setDate(firstMon.getDate() + (w - 1) * 7);
+      if (wStart.getMonth() === prevMonth) {
+        weekWins.forEach(win => { winsTotal += parseFloat(win.amount) || 0; });
+      }
+    }
+
+    // Action items for prev month
+    const aiKey = `${year}-${prevMonth}`;
+    const actionItems = ud.actionItems && ud.actionItems[aiKey] ? ud.actionItems[aiKey] : [];
+    const completedAI = actionItems.filter(a => a.completed).length;
+
+    // Targets
+    const tgtKey = `${year}-${prevMonth}`;
+    const targets = ud.targets && ud.targets[tgtKey] ? ud.targets[tgtKey] : [];
+    const completedTgt = targets.filter(t => t.completed).length;
+
+    // SAP accounts
+    const sapKey = `${year}-${prevMonth}`;
+    const sap = ud.actionPlan && ud.actionPlan[sapKey] ? ud.actionPlan[sapKey] : [];
+
+    const prevMonthName = MONTHS[prevMonth];
+
+    return `
+    <div class="review-accordion">
+      <div class="review-accordion-header" onclick="toggleReview('review-${mi}')">
+        <span>📝 ${month} Review</span>
+        <span id="review-arrow-${mi}">${isOpen ? '▲' : '▼'}</span>
+      </div>
+      <div class="review-accordion-body${isOpen ? ' open' : ''}" id="review-${mi}">
+
+        <!-- SECTION 1: PREVIOUS MONTH RESULTS -->
+        <div class="review-section">
+          <div class="review-section-title">📊 Previous Month Results — ${prevMonthName}</div>
+          <div class="review-stat-grid">
+            <div class="review-stat-box">
+              <div class="label">Actual Sales</div>
+              <div class="value">${fmt(actual)}</div>
+            </div>
+            <div class="review-stat-box">
+              <div class="label">Forecast</div>
+              <div class="value">${fmt(edited)}</div>
+            </div>
+            <div class="review-stat-box">
+              <div class="label">Sales vs Forecast</div>
+              <div class="value ${fcVar !== null ? (fcVar >= 0 ? 'var-pos' : 'var-neg') : ''}">${fcVar !== null ? (fcVar >= 0 ? '+' : '') + fcVar.toFixed(1) + '%' : '—'}</div>
+            </div>
+            <div class="review-stat-box">
+              <div class="label">Prior Year Sales</div>
+              <div class="value">${fmt(priorYear)}</div>
+            </div>
+            <div class="review-stat-box">
+              <div class="label">Sales vs Last Year</div>
+              <div class="value ${yoyVar !== null ? (yoyVar >= 0 ? 'var-pos' : 'var-neg') : ''}">${yoyVar !== null ? (yoyVar >= 0 ? '+' : '') + yoyVar.toFixed(1) + '%' : '—'}</div>
+            </div>
+            <div class="review-stat-box">
+              <div class="label">Total Wins Amount</div>
+              <div class="value" style="color:var(--gold);">${fmt(winsTotal)}</div>
+            </div>
+          </div>
+
+          ${sap.length > 0 ? `
+          <div style="margin-top:12px;">
+            <div style="font-size:13px;font-weight:600;margin-bottom:8px;">Sales Action Plan Accounts</div>
+            <table class="data-table" style="font-size:13px;">
+              <thead><tr><th>Account</th><th>Projected</th><th>Actual</th><th>Variance</th></tr></thead>
+              <tbody>${sap.map(r => {
+                const proj = parseFloat(r.projected)||0;
+                const act = parseFloat(r.actual)||0;
+                const v = proj > 0 ? ((act-proj)/proj*100) : null;
+                return `<tr><td>${r.account||'—'}</td><td>${fmt(proj)}</td><td>${fmt(act)}</td><td class="${varClass(v)}">${v !== null ? (v>=0?'+':'')+v.toFixed(1)+'%' : '—'}</td></tr>`;
+              }).join('')}</tbody>
+            </table>
+          </div>` : ''}
+        </div>
+
+        <!-- SECTION 2: ACTIONABLE ITEMS -->
+        <div class="review-section">
+          <div class="review-section-title">✅ Actionable Items — ${prevMonthName}</div>
+          ${actionItems.length > 0 ? `
+          <div style="margin-bottom:12px;">
+            <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Action Items (${completedAI}/${actionItems.length} completed)</div>
+            <ul class="review-wins-list">${actionItems.map(a => `<li style="color:${a.completed?'var(--green, #27ae60)':'var(--charcoal)'};">${a.completed?'✓':''} ${a.text||'—'}</li>`).join('')}</ul>
+          </div>` : '<p style="color:var(--mid-gray);font-size:13px;">No action items recorded.</p>'}
+          ${targets.length > 0 ? `
+          <div>
+            <div style="font-size:13px;font-weight:600;margin-bottom:6px;">Targets (${completedTgt}/${targets.length} met)</div>
+            <ul class="review-wins-list">${targets.map(t => `<li style="color:${t.completed?'var(--green, #27ae60)':'var(--charcoal)'};">${t.completed?'✓':''} ${t.name||'—'} — ${fmt(t.value||0)}</li>`).join('')}</ul>
+          </div>` : ''}
+        </div>
+
+        <!-- SECTION 3: REVIEW / RECORD OF CONVERSATION -->
+        <div class="review-section">
+          <div class="review-section-title">💬 Review — 1-on-1 Record of Conversation</div>
+          ${isAdmin() ? `
+          <textarea class="review-textarea" id="mr-conv-${mi}" placeholder="Record the 1-on-1 conversation for ${prevMonthName}...">${review.conversation||''}</textarea>
+          <div style="margin-top:8px;display:flex;gap:8px;">
+            <button class="btn btn-primary btn-sm" onclick="saveMonthlyReview('${userId}',${year},${mi})">💾 Save Review</button>
+          </div>` : `
+          <div style="background:var(--light-gray);border-radius:8px;padding:16px;font-size:14px;min-height:80px;white-space:pre-wrap;">${review.conversation || '<span style="color:var(--mid-gray);">No review recorded yet.</span>'}</div>`}
+        </div>
+
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleReview(id) {
+  const body = document.getElementById(id);
+  const idx = id.replace('review-','');
+  const arrow = document.getElementById(`review-arrow-${idx}`);
+  const isOpen = body.classList.toggle('open');
+  arrow.textContent = isOpen ? '▲' : '▼';
+}
+
+function saveMonthlyReview(userId, year, mi) {
+  const ud = getUserData(userId);
+  if (!ud.monthlyReview) ud.monthlyReview = {};
+  const key = `${year}-${mi}`;
+  ud.monthlyReview[key] = {
+    conversation: document.getElementById(`mr-conv-${mi}`).value
+  };
+  saveState();
+  showToast('✓ Review saved');
 }
 
 // ═══════════════════════════════════
